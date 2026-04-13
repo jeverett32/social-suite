@@ -1,0 +1,85 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1776093012522,
+  "projectRoot": "C:\\Users\\johne\\Documents\\GitHub\\social-suite",
+  "techStack": {
+    "languages": [],
+    "frameworks": [],
+    "packageManager": null,
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "wiki": {
+      "path": "wiki",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1776093012502,
+      "keyFiles": [
+        "FEASIBILITY.md",
+        "MOSCOW.md"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "",
+      "accessCount": 3,
+      "lastAccessed": 1776093045966,
+      "type": "directory"
+    },
+    {
+      "path": "index.html",
+      "accessCount": 2,
+      "lastAccessed": 1776094602494,
+      "type": "file"
+    },
+    {
+      "path": "README.md",
+      "accessCount": 1,
+      "lastAccessed": 1776093050895,
+      "type": "file"
+    },
+    {
+      "path": "wiki\\FEASIBILITY.md",
+      "accessCount": 1,
+      "lastAccessed": 1776093051316,
+      "type": "file"
+    },
+    {
+      "path": "wiki\\MOSCOW.md",
+      "accessCount": 1,
+      "lastAccessed": 1776093051952,
+      "type": "file"
+    },
+    {
+      "path": "wiki\\PLAN.md",
+      "accessCount": 1,
+      "lastAccessed": 1776093345104,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

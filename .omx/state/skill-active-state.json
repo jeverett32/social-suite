@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "active": true,
+  "skill": "plan",
+  "keyword": "let's plan",
+  "phase": "planning",
+  "activated_at": "2026-04-13T16:58:45.504Z",
+  "updated_at": "2026-04-13T16:58:45.504Z",
+  "source": "keyword-detector",
+  "session_id": "",
+  "thread_id": "019d8780-157a-7ab0-89e5-9c9975a0f186",
+  "turn_id": "019d87c6-5b76-7392-9f90-699bf6273d58",
+  "iteration": 3,
+  "last_turn_at": "2026-04-13T17:30:44.024Z"
+}

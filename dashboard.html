@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Krowdr Dashboard - Social operations in motion.</title>
+  <script>
+    (function () {
+      const STORAGE_KEY = "krowdr.demo.session";
+      try {
+        const params = new URLSearchParams(window.location.search);
+        if (!localStorage.getItem(STORAGE_KEY) && params.get("demo") === "1") {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            firstName: "Jordan",
+            fullName: "Jordan Lee",
+            email: "demo@krowdr.com",
+            teamName: "Krowdr Demo Workspace",
+            role: "Social strategist",
+            mode: "demo"
+          }));
+        }
+
+        const session = localStorage.getItem(STORAGE_KEY);
+        if (!session) {
+          window.location.replace("auth.html#login");
+        }
+      } catch (error) {
+        window.location.replace("auth.html#login");
+      }
+    }());
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --paper: #ffffff;
+      --shell: #fcfaf6;
+      --panel: #fbf8f3;
+      --ink: #111111;
+      --muted: #625d58;
+      --line: rgba(17, 17, 17, 0.12);
+      --line-strong: rgba(17, 17, 17, 0.2);
+      --warm: #c16747;
+      --olive: #727454;
+      --blue: #42627f;
+      --gold: #a28443;
+      --danger: #9e4d3b;
+      --success: #536443;
+      --content: 1540px;
+      --radius: 6px;
+      --shadow: 0 18px 40px rgba(17, 17, 17, 0.04);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Inter", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 248px minmax(0, 1fr);
+      background: var(--paper);
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 20px;
+      padding: 24px 18px;
+      border-right: 1px solid var(--line);
+      background: var(--shell);
+      overflow: auto;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-mark {
+      color: var(--warm);
+    }
+
+    .workspace-chip {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .workspace-chip span,
+    .section-label,
+    .panel-label,
+    .metric-label,
+    .pill,
+    .queue-meta,
+    .activity-meta,
+    .small-label {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .workspace-chip strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.45;
+    }
+
+    .nav-group {
+      margin-top: 16px;
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+    }
+
+    .nav-list {
+      display: grid;
+      gap: 4px;
+      margin-top: 10px;
+    }
+
+    .nav-link {
+      display: grid;
+      grid-template-columns: 22px 1fr auto;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 12px;
+      border-radius: var(--radius);
+      color: var(--muted);
+      transition: background-color 0.22s ease, color 0.22s ease;
+    }
+
+    .nav-link:hover {
+      background: rgba(17, 17, 17, 0.04);
+      color: var(--ink);
+    }
+
+    .nav-link.is-active {
+      background: #ffffff;
+      color: var(--ink);
+      box-shadow: var(--shadow);
+    }
+
+    .nav-icon {
+      width: 22px;
+      height: 22px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: inherit;
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    .nav-count {
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: rgba(193, 103, 71, 0.12);
+      color: var(--warm);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .sidebar-footer {
+      display: grid;
+      gap: 12px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .profile-block {
+      display: grid;
+      grid-template-columns: 38px 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(193, 103, 71, 0.14);
+      color: var(--warm);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .profile-block strong {
+      display: block;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .profile-block span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .logout-button,
+    .top-button,
+    .quick-actions button,
+    .composer-option {
+      appearance: none;
+      border: 1px solid currentColor;
+      border-radius: 4px;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      transition: background-color 0.22s ease, color 0.22s ease, border-color 0.22s ease, transform 0.22s ease;
+    }
+
+    .logout-button:hover,
+    .top-button:hover,
+    .quick-actions button:hover,
+    .composer-option:hover {
+      transform: translateY(-1px);
+    }
+
+    .logout-button {
+      min-height: 42px;
+      color: var(--ink);
+    }
+
+    .main {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255, 255, 255, 0.94);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    .topbar-inner {
+      width: 100%;
+      max-width: var(--content);
+      margin: 0 auto;
+      padding: 16px 30px;
+      display: grid;
+      grid-template-columns: auto minmax(180px, 320px) auto;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .mobile-toggle {
+      display: none;
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: #ffffff;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .workspace-switcher {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 46px;
+      padding: 0 16px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: #ffffff;
+      min-width: 0;
+    }
+
+    .workspace-switcher strong {
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .workspace-switcher small {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .search-shell {
+      display: inline-flex;
+      align-items: center;
+      min-height: 46px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: #ffffff;
+      color: var(--muted);
+    }
+
+    .search-shell input {
+      width: 100%;
+      border: 0;
+      outline: none;
+      background: transparent;
+      color: var(--ink);
+      font-size: 14px;
+      padding-left: 10px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .top-button {
+      min-height: 42px;
+      padding: 0 14px;
+      color: var(--ink);
+      background: #ffffff;
+    }
+
+    .top-button.is-primary {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #ffffff;
+    }
+
+    .content {
+      width: 100%;
+      max-width: var(--content);
+      margin: 0 auto;
+      padding: 30px 30px 48px;
+    }
+
+    .intro {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .intro h1,
+    .panel-title,
+    .headline {
+      margin: 0;
+      font-family: "Newsreader", serif;
+      font-weight: 500;
+      line-height: 0.98;
+      letter-spacing: -0.03em;
+      text-wrap: balance;
+    }
+
+    .intro h1 {
+      font-size: clamp(38px, 5vw, 60px);
+      max-width: 760px;
+    }
+
+    .intro h1 .warm { color: var(--warm); }
+    .intro h1 .olive { color: var(--olive); }
+
+    .intro-copy,
+    .panel-copy {
+      margin: 18px 0 0;
+      max-width: 680px;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.75;
+    }
+
+    .quick-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .quick-actions button {
+      min-height: 42px;
+      padding: 0 14px;
+      background: #ffffff;
+      color: var(--ink);
+    }
+
+    .quick-actions .is-primary {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #ffffff;
+    }
+
+    .focus-brief {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      padding: 18px 18px 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .focus-brief ul {
+      margin: 16px 0 0;
+      padding: 0;
+      list-style: none;
+      border-top: 1px solid var(--line);
+    }
+
+    .focus-brief li {
+      display: grid;
+      grid-template-columns: 76px 1fr;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .focus-brief li:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 26px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+      padding: 16px 16px 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .metric-value {
+      margin-top: 12px;
+      font-size: 34px;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .metric-note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .metric-trend {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .metric-trend strong {
+      color: var(--success);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.28fr) minmax(290px, 0.72fr);
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .panel-title {
+      font-size: clamp(28px, 3vw, 38px);
+    }
+
+    .panel-copy {
+      margin-top: 10px;
+      font-size: 15px;
+      max-width: 100%;
+    }
+
+    .timeline-shell {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .timeline-day {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 320px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--panel);
+      overflow: hidden;
+    }
+
+    .timeline-day header {
+      padding: 12px 12px 10px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .timeline-day strong {
+      display: block;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .timeline-day span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .timeline-day .items {
+      display: grid;
+      align-content: start;
+      gap: 10px;
+      padding: 12px;
+    }
+
+    .timeline-card {
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 10px 10px 12px;
+      background: #ffffff;
+      transition: transform 0.22s ease, border-color 0.22s ease;
+    }
+
+    .timeline-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--line-strong);
+    }
+
+    .timeline-card strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .timeline-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+      min-height: 24px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: rgba(17, 17, 17, 0.06);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: var(--ink);
+    }
+
+    .pill.warm { background: rgba(193, 103, 71, 0.12); color: var(--warm); }
+    .pill.olive { background: rgba(114, 116, 84, 0.12); color: var(--olive); }
+    .pill.blue { background: rgba(66, 98, 127, 0.12); color: var(--blue); }
+    .pill.gold { background: rgba(162, 132, 67, 0.12); color: var(--gold); }
+
+    .pipeline-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .pipeline-item {
+      display: grid;
+      gap: 10px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .pipeline-item:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .pipeline-item header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .pipeline-item strong {
+      font-size: 16px;
+      line-height: 1.4;
+    }
+
+    .pipeline-bar {
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(17, 17, 17, 0.08);
+      overflow: hidden;
+    }
+
+    .pipeline-bar span {
+      display: block;
+      height: 100%;
+      border-radius: 999px;
+      background: var(--ink);
+    }
+
+    .pipeline-item.warm .pipeline-bar span { background: var(--warm); }
+    .pipeline-item.olive .pipeline-bar span { background: var(--olive); }
+    .pipeline-item.blue .pipeline-bar span { background: var(--blue); }
+    .pipeline-item.gold .pipeline-bar span { background: var(--gold); }
+
+    .focus-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .focus-item {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 14px;
+      padding: 12px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .focus-item strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    .lower-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.18fr) minmax(300px, 0.82fr);
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .queue-list {
+      display: grid;
+      gap: 0;
+      margin-top: 8px;
+    }
+
+    .queue-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) 118px 118px 84px 88px;
+      gap: 14px;
+      align-items: center;
+      padding: 14px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .queue-row strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    .queue-row p,
+    .activity-list p,
+    .focus-item p,
+    .composer-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .pulse-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .pulse-metric {
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .pulse-metric strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+
+    .pulse-chart {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+      align-items: end;
+      min-height: 180px;
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .pulse-chart .bar {
+      display: grid;
+      justify-items: center;
+      gap: 8px;
+    }
+
+    .pulse-chart .bar span {
+      width: 100%;
+      border-radius: 4px 4px 0 0;
+      background: rgba(17, 17, 17, 0.12);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pulse-chart .bar span::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0 0;
+      height: 78%;
+      background: var(--ink);
+      border-radius: 4px 4px 0 0;
+    }
+
+    .pulse-chart .bar:nth-child(2) span::after,
+    .pulse-chart .bar:nth-child(5) span::after { background: var(--warm); }
+    .pulse-chart .bar:nth-child(3) span::after,
+    .pulse-chart .bar:nth-child(6) span::after { background: var(--olive); }
+
+    .activity-list {
+      display: grid;
+      gap: 14px;
+      margin-top: 8px;
+    }
+
+    .activity-item {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 12px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .activity-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(114, 116, 84, 0.14);
+      color: var(--olive);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .activity-item strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .composer {
+      position: fixed;
+      inset: 0;
+      display: none;
+      place-items: center;
+      background: rgba(17, 17, 17, 0.18);
+      z-index: 50;
+      padding: 20px;
+    }
+
+    .composer.is-open {
+      display: grid;
+    }
+
+    .composer-panel {
+      width: min(560px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 20px;
+      box-shadow: 0 24px 60px rgba(17, 17, 17, 0.12);
+    }
+
+    .composer-actions {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .composer-option {
+      padding: 14px;
+      text-align: left;
+      color: var(--ink);
+      background: var(--panel);
+    }
+
+    .composer-option strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 15px;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .reveal.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .delay-1 { transition-delay: 0.06s; }
+    .delay-2 { transition-delay: 0.12s; }
+    .delay-3 { transition-delay: 0.18s; }
+
+    @media (max-width: 1220px) {
+      .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .workspace-grid,
+      .lower-grid,
+      .intro { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 980px) {
+      .app-shell { grid-template-columns: 1fr; }
+
+      .sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        width: 272px;
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        z-index: 45;
+        box-shadow: 24px 0 48px rgba(17, 17, 17, 0.08);
+      }
+
+      body.sidebar-open .sidebar { transform: translateX(0); }
+      .mobile-toggle { display: inline-flex; }
+      .topbar-inner {
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        padding: 16px 18px;
+      }
+      .content { padding: 24px 18px 42px; }
+    }
+
+    @media (max-width: 860px) {
+      .topbar-inner { grid-template-columns: auto 1fr; }
+      .search-shell { display: none; }
+      .metric-grid,
+      .timeline-shell,
+      .pulse-metrics { grid-template-columns: 1fr; }
+      .queue-row { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      .top-actions { gap: 8px; }
+      .top-button:not(.is-primary) { display: none; }
+      .workspace-switcher { min-width: 0; }
+      .workspace-switcher strong {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .quick-actions button { width: 100%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .reveal,
+      .nav-link,
+      .timeline-card,
+      .button,
+      .composer-option,
+      .sidebar {
+        transition: none;
+        transform: none;
+      }
+    }
+  </style>
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div>
+        <a class="brand" href="dashboard.html"><span class="brand-mark">Krowdr</span></a>
+        <div class="workspace-chip">
+          <span>Current workspace</span>
+          <strong id="workspace-name-sidebar">Krowdr Demo Workspace</strong>
+        </div>
+
+        <div class="nav-group">
+          <span class="section-label">Control room</span>
+          <nav class="nav-list" aria-label="Dashboard navigation">
+            <a class="nav-link is-active" href="dashboard.html"><span class="nav-icon">H</span><span>Home</span><span class="nav-count">4</span></a>
+            <a class="nav-link" href="#"><span class="nav-icon">C</span><span>Campaigns</span><span class="nav-count">8</span></a>
+            <a class="nav-link" href="#"><span class="nav-icon">K</span><span>Calendar</span><span class="nav-count">12</span></a>
+            <a class="nav-link" href="#"><span class="nav-icon">D</span><span>Drafts</span><span class="nav-count">9</span></a>
+            <a class="nav-link" href="#"><span class="nav-icon">A</span><span>Approvals</span><span class="nav-count">6</span></a>
+            <a class="nav-link" href="#"><span class="nav-icon">R</span><span>Analytics</span></a>
+            <a class="nav-link" href="#"><span class="nav-icon">T</span><span>Assets</span></a>
+            <a class="nav-link" href="#"><span class="nav-icon">Y</span><span>Team</span></a>
+          </nav>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="profile-block">
+          <span class="avatar" id="sidebar-avatar">JL</span>
+          <div>
+            <strong id="sidebar-name">Jordan Lee</strong>
+            <span id="sidebar-role">Social strategist</span>
+          </div>
+        </div>
+        <button class="logout-button" id="logout-button" type="button">Log Out</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="topbar-inner">
+          <button class="mobile-toggle" id="mobile-toggle" type="button" aria-label="Open navigation">≡</button>
+          <div class="workspace-switcher">
+            <div>
+              <small>This week</small>
+              <strong id="workspace-name-topbar">Krowdr Demo Workspace</strong>
+            </div>
+          </div>
+          <label class="search-shell" aria-label="Search">
+            <span>Search</span>
+            <input type="text" value="Campaigns, posts, approvals" readonly />
+          </label>
+          <div class="top-actions">
+            <button class="top-button" type="button">Apr 13 - Apr 19</button>
+            <button class="top-button" type="button">Notifications</button>
+            <button class="top-button is-primary" id="quick-create" type="button">Quick Create</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <section class="intro">
+          <div class="reveal">
+            <span class="section-label">Morning brief</span>
+            <h1>Good morning, <span class="warm" id="headline-name">Jordan</span>. Your team has a <span class="olive">strong week in motion.</span></h1>
+            <p class="intro-copy" id="intro-copy">Krowdr is holding one active launch, six approvals due today, and a healthy publishing rhythm through Friday. The next best move is to clear reviews before noon so the remaining scheduled posts can lock cleanly.</p>
+            <div class="quick-actions">
+              <button class="is-primary" type="button" id="new-post-action">New post</button>
+              <button type="button">Open review queue</button>
+              <button type="button">Jump to calendar</button>
+            </div>
+          </div>
+
+          <aside class="focus-brief reveal delay-1">
+            <span class="panel-label">Current focus</span>
+            <h2 class="headline" style="font-size: 34px; margin-top: 10px;">Spring refresh campaign is carrying the week.</h2>
+            <p class="panel-copy">Two channel cutdowns still need approval, one founder draft needs a final pass, and the Friday brand film is pacing above average on saves.</p>
+            <ul>
+              <li><span class="small-label">Today</span><div>Resolve high-priority approvals before the 11:30 scheduling window.</div></li>
+              <li><span class="small-label">Watch</span><div>LinkedIn carousel cut is trending late because feedback is still sitting with brand.</div></li>
+              <li><span class="small-label">Win</span><div>Reels engagement is up 18 percent week over week on the current campaign set.</div></li>
+            </ul>
+          </aside>
+        </section>
+
+        <section class="metric-grid">
+          <article class="metric reveal">
+            <span class="metric-label">Needs approval</span>
+            <div class="metric-value">6</div>
+            <p class="metric-note">Three items are due before lunch and two are tied to tomorrow's scheduled posts.</p>
+            <div class="metric-trend"><strong>Urgent</strong><span>2 more than yesterday</span></div>
+          </article>
+          <article class="metric reveal delay-1">
+            <span class="metric-label">Scheduled today</span>
+            <div class="metric-value">9</div>
+            <p class="metric-note">Across Instagram, LinkedIn, TikTok, and one founder-note sequence.</p>
+            <div class="metric-trend"><strong>Steady</strong><span>On pace with plan</span></div>
+          </article>
+          <article class="metric reveal delay-2">
+            <span class="metric-label">Blocked</span>
+            <div class="metric-value">2</div>
+            <p class="metric-note">One legal review and one missing asset are keeping the queue from fully clearing.</p>
+            <div class="metric-trend"><strong>Watch</strong><span>Both tied to Friday</span></div>
+          </article>
+          <article class="metric reveal delay-3">
+            <span class="metric-label">Weekly reach</span>
+            <div class="metric-value">1.8M</div>
+            <p class="metric-note">Projected reach if the remaining campaign posts hold current performance.</p>
+            <div class="metric-trend"><strong>Up 14%</strong><span>Best week this month</span></div>
+          </article>
+        </section>
+
+        <section class="workspace-grid">
+          <article class="panel reveal">
+            <div class="panel-header">
+              <div>
+                <span class="panel-label">Publishing timeline</span>
+                <h2 class="panel-title">This week's rhythm</h2>
+                <p class="panel-copy">A five-day view of what is drafting, what is approved, and what is already booked into the publishing line.</p>
+              </div>
+              <span class="pill warm">12 scheduled</span>
+            </div>
+
+            <div class="timeline-shell">
+              <section class="timeline-day">
+                <header><strong>Mon</strong><span>2 live, 1 in review</span></header>
+                <div class="items">
+                  <article class="timeline-card"><span class="pill blue">Instagram</span><strong>Spring palette reel</strong><div class="timeline-meta"><span>09:30</span><span>Approved</span></div></article>
+                  <article class="timeline-card"><span class="pill olive">LinkedIn</span><strong>Founder memo cut</strong><div class="timeline-meta"><span>14:00</span><span>Needs signoff</span></div></article>
+                </div>
+              </section>
+              <section class="timeline-day">
+                <header><strong>Tue</strong><span>3 in motion</span></header>
+                <div class="items">
+                  <article class="timeline-card"><span class="pill gold">TikTok</span><strong>Desk setup b-roll loop</strong><div class="timeline-meta"><span>10:15</span><span>Scheduled</span></div></article>
+                  <article class="timeline-card"><span class="pill warm">Instagram</span><strong>Color study carousel</strong><div class="timeline-meta"><span>15:40</span><span>Drafting</span></div></article>
+                </div>
+              </section>
+              <section class="timeline-day">
+                <header><strong>Wed</strong><span>Review heavy</span></header>
+                <div class="items">
+                  <article class="timeline-card"><span class="pill olive">LinkedIn</span><strong>Client proof social set</strong><div class="timeline-meta"><span>08:45</span><span>Blocked</span></div></article>
+                  <article class="timeline-card"><span class="pill blue">Instagram</span><strong>Studio notes sequence</strong><div class="timeline-meta"><span>13:30</span><span>Approved</span></div></article>
+                </div>
+              </section>
+              <section class="timeline-day">
+                <header><strong>Thu</strong><span>2 launches</span></header>
+                <div class="items">
+                  <article class="timeline-card"><span class="pill warm">Campaign</span><strong>Spring refresh hero drop</strong><div class="timeline-meta"><span>11:00</span><span>Ready</span></div></article>
+                  <article class="timeline-card"><span class="pill gold">TikTok</span><strong>Behind-the-scenes stitch</strong><div class="timeline-meta"><span>17:20</span><span>Drafting</span></div></article>
+                </div>
+              </section>
+              <section class="timeline-day">
+                <header><strong>Fri</strong><span>Brand closeout</span></header>
+                <div class="items">
+                  <article class="timeline-card"><span class="pill olive">LinkedIn</span><strong>Week-in-review post</strong><div class="timeline-meta"><span>09:00</span><span>Queued</span></div></article>
+                  <article class="timeline-card"><span class="pill blue">Instagram</span><strong>Campaign recap film</strong><div class="timeline-meta"><span>16:45</span><span>Awaiting legal</span></div></article>
+                </div>
+              </section>
+            </div>
+          </article>
+
+          <div class="stack">
+            <article class="panel reveal delay-1">
+              <div class="panel-header">
+                <div><span class="panel-label">Content pipeline</span><h2 class="panel-title">Where the work is sitting</h2></div>
+                <span class="pill olive">24 items</span>
+              </div>
+              <div class="pipeline-list">
+                <div class="pipeline-item warm"><header><strong>Drafting</strong><span>7 items</span></header><div class="pipeline-bar"><span style="width: 54%;"></span></div></div>
+                <div class="pipeline-item blue"><header><strong>In review</strong><span>6 items</span></header><div class="pipeline-bar"><span style="width: 46%;"></span></div></div>
+                <div class="pipeline-item olive"><header><strong>Approved</strong><span>8 items</span></header><div class="pipeline-bar"><span style="width: 66%;"></span></div></div>
+                <div class="pipeline-item gold"><header><strong>Scheduled</strong><span>3 items</span></header><div class="pipeline-bar"><span style="width: 28%;"></span></div></div>
+              </div>
+            </article>
+
+            <article class="panel reveal delay-2">
+              <div class="panel-header"><div><span class="panel-label">Today board</span><h2 class="panel-title">Best next moves</h2></div></div>
+              <div class="focus-list">
+                <div class="focus-item"><span class="small-label">09:45</span><div><strong>Approve the founder memo cut</strong><p>Final language is waiting on your pass before the 10:30 publishing slot.</p></div></div>
+                <div class="focus-item"><span class="small-label">11:30</span><div><strong>Clear brand feedback on the carousel set</strong><p>Two visual notes are still blocking the LinkedIn and Instagram pair.</p></div></div>
+                <div class="focus-item"><span class="small-label">15:00</span><div><strong>Review weekly recap metrics</strong><p>Reels are outperforming static by enough margin to change next week's mix.</p></div></div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="lower-grid">
+          <article class="panel reveal">
+            <div class="panel-header">
+              <div>
+                <span class="panel-label">Approval queue</span>
+                <h2 class="panel-title">What needs attention now</h2>
+                <p class="panel-copy">Rows stay sparse and readable so the queue feels like an editorial list, not a spreadsheet.</p>
+              </div>
+              <span class="pill warm">6 waiting</span>
+            </div>
+            <div class="queue-list">
+              <div class="queue-row"><div><span class="queue-meta">Post</span><strong>Founder memo cut for LinkedIn</strong><p>Spring refresh campaign</p></div><div><span class="queue-meta">Channel</span><strong>LinkedIn</strong></div><div><span class="queue-meta">Owner</span><strong>Maya</strong></div><div><span class="queue-meta">Due</span><strong>10:30</strong></div><div><span class="queue-meta">Status</span><strong style="color: var(--warm);">Urgent</strong></div></div>
+              <div class="queue-row"><div><span class="queue-meta">Post</span><strong>Color study carousel</strong><p>Weekly studio series</p></div><div><span class="queue-meta">Channel</span><strong>Instagram</strong></div><div><span class="queue-meta">Owner</span><strong>Rae</strong></div><div><span class="queue-meta">Due</span><strong>11:45</strong></div><div><span class="queue-meta">Status</span><strong style="color: var(--gold);">Waiting</strong></div></div>
+              <div class="queue-row"><div><span class="queue-meta">Post</span><strong>Client proof social set</strong><p>Partner recap campaign</p></div><div><span class="queue-meta">Channel</span><strong>LinkedIn</strong></div><div><span class="queue-meta">Owner</span><strong>Jordan</strong></div><div><span class="queue-meta">Due</span><strong>15:15</strong></div><div><span class="queue-meta">Status</span><strong style="color: var(--danger);">Blocked</strong></div></div>
+              <div class="queue-row"><div><span class="queue-meta">Post</span><strong>Campaign recap film</strong><p>Friday closeout</p></div><div><span class="queue-meta">Channel</span><strong>Instagram</strong></div><div><span class="queue-meta">Owner</span><strong>Leah</strong></div><div><span class="queue-meta">Due</span><strong>17:00</strong></div><div><span class="queue-meta">Status</span><strong style="color: var(--olive);">Ready</strong></div></div>
+            </div>
+          </article>
+
+          <div class="stack">
+            <article class="panel reveal delay-1">
+              <div class="panel-header"><div><span class="panel-label">Performance pulse</span><h2 class="panel-title">What the week is saying</h2></div><span class="pill blue">Narrative view</span></div>
+              <p class="panel-copy">The strongest signal this week is that short, voice-led edits are outperforming static educational posts on first-hour saves and shares.</p>
+              <div class="pulse-metrics">
+                <div class="pulse-metric"><span class="small-label">Top campaign</span><strong>Spring refresh</strong><p class="queue-meta">+18% saves</p></div>
+                <div class="pulse-metric"><span class="small-label">Best post</span><strong>Desk setup reel</strong><p class="queue-meta">8.4% engagement</p></div>
+                <div class="pulse-metric"><span class="small-label">Watch</span><strong>Carousel depth</strong><p class="queue-meta">Slide 3 drop-off</p></div>
+              </div>
+              <div class="pulse-chart" aria-label="Weekly performance trend">
+                <div class="bar"><span style="height: 72px;"></span><small>Mon</small></div>
+                <div class="bar"><span style="height: 108px;"></span><small>Tue</small></div>
+                <div class="bar"><span style="height: 122px;"></span><small>Wed</small></div>
+                <div class="bar"><span style="height: 96px;"></span><small>Thu</small></div>
+                <div class="bar"><span style="height: 138px;"></span><small>Fri</small></div>
+                <div class="bar"><span style="height: 116px;"></span><small>Sat</small></div>
+              </div>
+            </article>
+
+            <article class="panel reveal delay-2">
+              <div class="panel-header"><div><span class="panel-label">Team activity</span><h2 class="panel-title">The human side of the queue</h2></div></div>
+              <div class="activity-list">
+                <div class="activity-item"><span class="activity-avatar">MR</span><div><strong>Maya approved the founder memo cut</strong><p>The only remaining note is a link preview check before scheduling.</p><span class="activity-meta">8 minutes ago</span></div></div>
+                <div class="activity-item"><span class="activity-avatar">RL</span><div><strong>Rae left a note on the carousel set</strong><p>She wants slide two to carry more contrast before brand signs off.</p><span class="activity-meta">22 minutes ago</span></div></div>
+                <div class="activity-item"><span class="activity-avatar">JL</span><div><strong>You flagged legal review on the recap film</strong><p>That keeps Friday clear unless the audio clearance slips past noon.</p><span class="activity-meta">47 minutes ago</span></div></div>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="composer" id="composer" aria-hidden="true">
+    <div class="composer-panel">
+      <span class="panel-label">Quick create</span>
+      <h2 class="panel-title">Start the next piece of work.</h2>
+      <p class="composer-note">This stays frontend-only for now, but it gives the dashboard a real control surface instead of a dead button.</p>
+      <div class="composer-actions">
+        <button class="composer-option" type="button"><strong>New post draft</strong><span class="composer-note">Open a fresh caption and asset pairing for the current campaign.</span></button>
+        <button class="composer-option" type="button"><strong>New campaign brief</strong><span class="composer-note">Create a launch workspace with goals, audience, timing, and references.</span></button>
+        <button class="composer-option" type="button"><strong>Invite teammate</strong><span class="composer-note">Stage a reviewer or contributor for the current workspace.</span></button>
+        <button class="logout-button" id="close-composer" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    const STORAGE_KEY = "krowdr.demo.session";
+    const session = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+
+    const fallbackSession = {
+      firstName: "Jordan",
+      fullName: "Jordan Lee",
+      email: "demo@krowdr.com",
+      teamName: "Krowdr Demo Workspace",
+      role: "Social strategist"
+    };
+
+    const user = { ...fallbackSession, ...session };
+
+    const initials = (user.fullName || user.firstName || "KD")
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join("");
+
+    document.getElementById("workspace-name-sidebar").textContent = user.teamName;
+    document.getElementById("workspace-name-topbar").textContent = user.teamName;
+    document.getElementById("sidebar-name").textContent = user.fullName;
+    document.getElementById("sidebar-role").textContent = user.role;
+    document.getElementById("headline-name").textContent = user.firstName;
+    document.getElementById("sidebar-avatar").textContent = initials;
+    document.getElementById("intro-copy").textContent =
+      user.teamName +
+      " has one active launch, six approvals due today, and a healthy publishing rhythm through Friday. The next best move is to clear reviews before noon so the remaining scheduled posts can lock cleanly.";
+
+    const revealItems = document.querySelectorAll(".reveal");
+    revealItems.forEach((item, index) => {
+      item.style.transitionDelay = 70 * index + "ms";
+      item.classList.add("is-visible");
+    });
+
+    const mobileToggle = document.getElementById("mobile-toggle");
+    const sidebar = document.getElementById("sidebar");
+    mobileToggle.addEventListener("click", () => {
+      document.body.classList.toggle("sidebar-open");
+    });
+
+    document.addEventListener("click", (event) => {
+      if (
+        document.body.classList.contains("sidebar-open") &&
+        !sidebar.contains(event.target) &&
+        !mobileToggle.contains(event.target)
+      ) {
+        document.body.classList.remove("sidebar-open");
+      }
+    });
+
+    const composer = document.getElementById("composer");
+    const quickCreate = document.getElementById("quick-create");
+    const newPostAction = document.getElementById("new-post-action");
+    const closeComposer = document.getElementById("close-composer");
+
+    function openComposer() {
+      composer.classList.add("is-open");
+      composer.setAttribute("aria-hidden", "false");
+    }
+
+    function closeComposerPanel() {
+      composer.classList.remove("is-open");
+      composer.setAttribute("aria-hidden", "true");
+    }
+
+    quickCreate.addEventListener("click", openComposer);
+    newPostAction.addEventListener("click", openComposer);
+    closeComposer.addEventListener("click", closeComposerPanel);
+
+    composer.addEventListener("click", (event) => {
+      if (event.target === composer) {
+        closeComposerPanel();
+      }
+    });
+
+    document.getElementById("logout-button").addEventListener("click", () => {
+      localStorage.removeItem(STORAGE_KEY);
+      window.location.href = "auth.html#login";
+    });
+  </script>
+</body>
+</html>

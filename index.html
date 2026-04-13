@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Krowdr - Social marketing with taste, rhythm, and clarity.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --paper: #ffffff;
+      --ink: #111111;
+      --muted: #5d5854;
+      --line: rgba(17, 17, 17, 0.14);
+      --line-strong: rgba(255, 255, 255, 0.28);
+      --warm: #c16747;
+      --olive: #727454;
+      --blue: #3f5870;
+      --content: 1320px;
+      --hero-shift: 0px;
+      --studio-shift: 0px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      overflow-x: hidden;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Inter", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    img,
+    video {
+      display: block;
+      max-width: 100%;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .page-shell {
+      width: 100%;
+      max-width: var(--content);
+      margin: 0 auto;
+      padding: 0 28px;
+    }
+
+    .site-nav {
+      position: fixed;
+      inset: 0 0 auto 0;
+      z-index: 40;
+      transition: background-color 0.45s ease, border-color 0.45s ease, color 0.45s ease, transform 0.45s ease;
+      color: #ffffff;
+      border-bottom: 1px solid transparent;
+    }
+
+    body.nav-light .site-nav {
+      background: rgba(255, 255, 255, 0.94);
+      color: var(--ink);
+      border-bottom-color: var(--line);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    .nav-inner {
+      width: 100%;
+      max-width: var(--content);
+      margin: 0 auto;
+      min-height: 78px;
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-mark {
+      color: var(--warm);
+    }
+
+    .nav-links,
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+    }
+
+    .nav-links a {
+      font-size: 14px;
+      opacity: 0.84;
+      transition: opacity 0.2s ease;
+    }
+
+    .nav-links a:hover {
+      opacity: 1;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 18px;
+      border: 1px solid currentColor;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+    }
+
+    .button-ghost {
+      background: transparent;
+    }
+
+    .button-solid {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #ffffff;
+    }
+
+    body:not(.nav-light) .button-solid {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.45);
+      color: #ffffff;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .hero-stage {
+      position: relative;
+      min-height: 92svh;
+      color: #ffffff;
+      background: #d9d0c7;
+      overflow: clip;
+    }
+
+    .hero-stage::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(16, 16, 16, 0.28);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .hero-video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: translateY(var(--hero-shift)) scale(1.05);
+      transform-origin: center center;
+      transition: transform 0.25s linear;
+    }
+
+    .hero-overlay {
+      position: relative;
+      z-index: 2;
+      min-height: 92svh;
+      display: flex;
+      align-items: flex-end;
+      padding-top: 108px;
+      padding-bottom: 56px;
+    }
+
+    .hero-stack {
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(240px, 0.55fr);
+      gap: 28px;
+      align-items: end;
+    }
+
+    .hero-copy {
+      max-width: 860px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      line-height: 1.4;
+      opacity: 0.95;
+      margin-bottom: 18px;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 24px;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .hero-title {
+      margin: 0;
+      max-width: 820px;
+      font-family: "Newsreader", serif;
+      font-size: clamp(54px, 8vw, 100px);
+      font-weight: 500;
+      line-height: 0.93;
+      letter-spacing: -0.04em;
+      text-wrap: balance;
+    }
+
+    .hero-title .warm {
+      color: #f0b297;
+    }
+
+    .hero-title .olive {
+      color: #d3d7b6;
+    }
+
+    .hero-sub {
+      max-width: 610px;
+      margin: 22px 0 0;
+      font-size: 19px;
+      line-height: 1.65;
+      color: rgba(255, 255, 255, 0.94);
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .hero-actions .button-ghost {
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .hero-side {
+      align-self: end;
+      display: grid;
+      gap: 16px;
+      padding-bottom: 8px;
+      font-size: 14px;
+      line-height: 1.65;
+      color: rgba(255, 255, 255, 0.88);
+    }
+
+    .hero-side strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #ffffff;
+      font-size: 13px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .hero-footer {
+      position: relative;
+      z-index: 3;
+      margin-top: -1px;
+      border-top: 1px solid var(--line);
+      background: var(--paper);
+    }
+
+    .hero-summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 26px;
+      padding: 22px 0 24px;
+    }
+
+    .summary-item {
+      padding-top: 10px;
+      border-top: 1px solid var(--line);
+    }
+
+    .summary-item span {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .summary-item p {
+      margin: 0;
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .section {
+      padding: 92px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .section-topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    .section-label {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .section-kicker {
+      color: var(--warm);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .story-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 42px;
+      align-items: start;
+      margin-bottom: 38px;
+    }
+
+    .section-title {
+      margin: 0;
+      max-width: 760px;
+      font-family: "Newsreader", serif;
+      font-size: clamp(40px, 5vw, 62px);
+      font-weight: 500;
+      line-height: 0.98;
+      letter-spacing: -0.03em;
+    }
+
+    .section-copy {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.75;
+      color: var(--muted);
+    }
+
+    .line-list {
+      border-top: 1px solid var(--line);
+    }
+
+    .line-row {
+      display: grid;
+      grid-template-columns: 90px 1.1fr 0.9fr;
+      gap: 26px;
+      align-items: start;
+      padding: 22px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .line-row span,
+    .workflow-step span {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .line-row h3,
+    .workflow-step h3,
+    .teams-list h3 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      line-height: 1.18;
+    }
+
+    .line-row p,
+    .workflow-step p,
+    .teams-list p,
+    .cta-copy,
+    .studio-note p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .workflow-grid {
+      display: grid;
+      grid-template-columns: minmax(320px, 0.75fr) minmax(0, 1fr);
+      gap: 56px;
+      align-items: start;
+    }
+
+    .studio-rail {
+      position: sticky;
+      top: 108px;
+    }
+
+    .studio-frame {
+      overflow: hidden;
+      aspect-ratio: 9 / 13.5;
+      background: #e8e0d7;
+    }
+
+    .studio-frame video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: translateY(var(--studio-shift)) scale(1.05);
+      transition: transform 0.25s linear;
+    }
+
+    .studio-note {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      padding-top: 18px;
+      margin-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+
+    .workflow-copy {
+      max-width: 620px;
+      margin: 0 0 26px;
+      font-size: 18px;
+      line-height: 1.75;
+      color: var(--muted);
+    }
+
+    .workflow-list {
+      border-top: 1px solid var(--line);
+    }
+
+    .workflow-step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 24px;
+      padding: 22px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .quote-band {
+      padding: 84px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .quote-band blockquote {
+      margin: 0;
+      max-width: 1060px;
+      font-family: "Newsreader", serif;
+      font-size: clamp(38px, 5vw, 64px);
+      font-weight: 500;
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+      text-wrap: balance;
+    }
+
+    .quote-band footer {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .teams-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.05fr;
+      gap: 42px;
+      align-items: start;
+    }
+
+    .teams-list {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+    }
+
+    .teams-list article {
+      padding-top: 18px;
+      border-top: 4px solid transparent;
+    }
+
+    .teams-list article:nth-child(1) {
+      border-color: var(--warm);
+    }
+
+    .teams-list article:nth-child(2) {
+      border-color: var(--olive);
+    }
+
+    .teams-list article:nth-child(3) {
+      border-color: var(--blue);
+    }
+
+    .cta-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.85fr;
+      gap: 42px;
+      align-items: start;
+      padding: 88px 0 96px;
+      border-top: 1px solid var(--line);
+    }
+
+    .cta-title {
+      margin: 0;
+      max-width: 740px;
+      font-family: "Newsreader", serif;
+      font-size: clamp(40px, 5vw, 60px);
+      font-weight: 500;
+      line-height: 0.98;
+      letter-spacing: -0.03em;
+    }
+
+    .cta-copy {
+      max-width: 620px;
+      margin-top: 18px;
+      font-size: 18px;
+    }
+
+    .cta-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 26px;
+    }
+
+    .cta-rail {
+      border-top: 1px solid var(--line);
+    }
+
+    .cta-rail div {
+      display: grid;
+      grid-template-columns: 88px minmax(0, 1fr);
+      align-items: start;
+      gap: 14px;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .cta-rail strong {
+      color: var(--ink);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .site-footer {
+      border-top: 1px solid var(--line);
+      padding: 20px 0 36px;
+    }
+
+    .footer-inner {
+      width: 100%;
+      max-width: var(--content);
+      margin: 0 auto;
+      padding: 0 28px;
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(38px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+      will-change: opacity, transform;
+    }
+
+    .reveal.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .delay-1 {
+      transition-delay: 0.08s;
+    }
+
+    .delay-2 {
+      transition-delay: 0.16s;
+    }
+
+    .delay-3 {
+      transition-delay: 0.24s;
+    }
+
+    body.is-ready .hero-animate {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .hero-animate {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.9s ease, transform 0.9s ease;
+    }
+
+    .hero-animate.delay-1 {
+      transition-delay: 0.12s;
+    }
+
+    .hero-animate.delay-2 {
+      transition-delay: 0.24s;
+    }
+
+    .hero-animate.delay-3 {
+      transition-delay: 0.36s;
+    }
+
+    @media (max-width: 1120px) {
+      .hero-stack,
+      .story-grid,
+      .workflow-grid,
+      .teams-grid,
+      .cta-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-side {
+        max-width: 540px;
+      }
+
+      .hero-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .line-row {
+        grid-template-columns: 80px 1fr;
+      }
+
+      .line-row > p:last-child {
+        grid-column: 2;
+      }
+
+      .studio-rail {
+        position: static;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .nav-inner {
+        min-height: 70px;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .hero-stage,
+      .hero-overlay {
+        min-height: 86svh;
+      }
+
+      .hero-overlay {
+        padding-top: 96px;
+        padding-bottom: 38px;
+      }
+
+      .hero-summary,
+      .teams-list,
+      .studio-note {
+        grid-template-columns: 1fr;
+      }
+
+      .section {
+        padding: 72px 0;
+      }
+
+      .quote-band {
+        padding: 68px 0;
+      }
+
+      .cta-grid {
+        padding: 72px 0 80px;
+      }
+
+      .line-row,
+      .workflow-step {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+
+      .line-row > p:last-child {
+        grid-column: auto;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .page-shell,
+      .nav-inner,
+      .footer-inner {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .nav-actions .button-ghost {
+        display: none;
+      }
+
+      .nav-actions .button-solid {
+        min-height: 42px;
+        padding: 0 14px;
+      }
+
+      .hero-stage,
+      .hero-overlay {
+        min-height: 84svh;
+      }
+
+      .hero-actions .button,
+      .cta-actions .button {
+        width: 100%;
+      }
+
+      .section-topline,
+      .footer-inner,
+      .cta-rail div {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .cta-rail div {
+        gap: 6px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      .reveal,
+      .hero-animate,
+      .button,
+      .site-nav,
+      .hero-video,
+      .studio-frame video {
+        transition: none;
+        transform: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="site-nav">
+    <div class="nav-inner">
+      <a class="brand" href="#top"><span class="brand-mark">Krowdr</span></a>
+
+      <div class="nav-links">
+        <a href="features.html">Features</a>
+        <a href="#why">Why marketers switch</a>
+        <a href="#workflow">Workflow</a>
+        <a href="#teams">Who it is for</a>
+      </div>
+
+      <div class="nav-actions">
+        <a class="button button-ghost" href="auth.html#login">Log In</a>
+        <a class="button button-solid" href="auth.html#register">Get Started</a>
+      </div>
+    </div>
+  </nav>
+
+  <main id="top">
+    <section class="hero-stage" id="hero">
+      <video class="hero-video" autoplay muted loop playsinline preload="metadata" aria-label="Two women in corporate attire reviewing colors against a wall">
+        <source src="first.mp4" type="video/mp4" />
+      </video>
+
+      <div class="hero-overlay page-shell">
+        <div class="hero-stack">
+          <div class="hero-copy">
+            <div class="eyebrow hero-animate">For social media marketers who need the work to feel considered before it goes live.</div>
+            <h1 class="hero-title hero-animate delay-1">
+              Build a sharper <span class="warm">social rhythm</span> without sanding off the <span class="olive">taste.</span>
+            </h1>
+            <p class="hero-sub hero-animate delay-2">
+              Krowdr keeps campaign planning, copy, approvals, scheduling, and reporting in one working rhythm for brand teams, agencies, and content leads.
+            </p>
+            <div class="hero-actions hero-animate delay-3">
+              <a class="button button-solid" href="auth.html#register">Get Started</a>
+              <a class="button button-ghost" href="features.html">Explore features</a>
+            </div>
+          </div>
+
+          <div class="hero-side hero-animate delay-2">
+            <div>
+              <strong>Campaign direction</strong>
+              Give every launch a clearer throughline from brief to publish.
+            </div>
+            <div>
+              <strong>Approval flow</strong>
+              Keep comments, revisions, and signoff closer to the work.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="hero-footer">
+      <div class="page-shell hero-summary reveal">
+        <div class="summary-item">
+          <span>Plan</span>
+          <p>Shape campaigns with voice notes, launch context, references, and timing in one place.</p>
+        </div>
+        <div class="summary-item">
+          <span>Write</span>
+          <p>Develop captions, hooks, and cutdowns without losing the brand language along the way.</p>
+        </div>
+        <div class="summary-item">
+          <span>Approve</span>
+          <p>Move edits and signoff through a clearer chain before the deadline starts compressing.</p>
+        </div>
+        <div class="summary-item">
+          <span>Review</span>
+          <p>See what landed, what drifted, and what deserves another round with actual context.</p>
+        </div>
+      </div>
+    </div>
+
+    <section class="section page-shell" id="why">
+      <div class="section-topline reveal">
+        <div class="section-label">Why marketers switch</div>
+        <div class="section-kicker">A clearer throughline from brief to results</div>
+      </div>
+
+      <div class="story-grid">
+        <h2 class="section-title reveal">The stack finally feels like one conversation instead of six separate tabs.</h2>
+        <p class="section-copy reveal delay-1">
+          Krowdr is for teams that hate choosing between craft and efficiency. It keeps the creative brief, production rhythm, approval chain, and reporting close enough together that the month feels organized without looking generic on the way out.
+        </p>
+      </div>
+
+      <div class="line-list">
+        <div class="line-row reveal">
+          <span>01</span>
+          <div>
+            <h3>Brand voice stays recognizable</h3>
+            <p>Keep naming, tone, references, and campaign intent close to the content while the calendar fills up.</p>
+          </div>
+          <p>Useful when multiple marketers, freelancers, and clients are shaping the same campaign window.</p>
+        </div>
+
+        <div class="line-row reveal delay-1">
+          <span>02</span>
+          <div>
+            <h3>Approvals stop drifting across threads</h3>
+            <p>Feedback lands where the captions and assets already live, so revisions stay legible and final language does not need to be reconstructed.</p>
+          </div>
+          <p>Cleaner for brand leads, faster for the people handling production every day.</p>
+        </div>
+
+        <div class="line-row reveal delay-2">
+          <span>03</span>
+          <div>
+            <h3>Reporting comes back with context</h3>
+            <p>Review what moved, what stalled, and which creative decisions deserve another round instead of getting flattened into a slide.</p>
+          </div>
+          <p>Built for monthly recaps, client reviews, and planning meetings that need more than surface-level totals.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section page-shell" id="workflow">
+      <div class="section-topline reveal">
+        <div class="section-label">Workflow</div>
+        <div class="section-kicker">Brief, write, approve, publish, review</div>
+      </div>
+
+      <div class="workflow-grid">
+        <aside class="studio-rail reveal">
+          <div class="studio-frame">
+            <video autoplay muted loop playsinline preload="metadata" aria-label="Overhead portrait video of someone working on a Mac keyboard">
+              <source src="second.mp4" type="video/mp4" />
+            </video>
+          </div>
+
+          <div class="studio-note">
+            <p>The day-to-day pace stays visible even when the calendar gets crowded.</p>
+            <p>Enough structure to keep the work moving. Enough room to keep it feeling authored.</p>
+          </div>
+        </aside>
+
+        <div>
+          <h2 class="section-title reveal">A calmer production loop for the people actually shipping the posts.</h2>
+          <p class="workflow-copy reveal delay-1">
+            The best social teams move quickly without looking rushed. Krowdr keeps planning, writing, approvals, scheduling, and analysis connected, so less energy gets spent re-explaining decisions and more energy stays in the work itself.
+          </p>
+
+          <div class="workflow-list">
+            <div class="workflow-step reveal">
+              <span>Step 1</span>
+              <div>
+                <h3>Shape the campaign before the calendar fills up</h3>
+                <p>Pull references, launch dates, audience notes, and the core message into one campaign thread before production starts branching.</p>
+              </div>
+            </div>
+
+            <div class="workflow-step reveal delay-1">
+              <span>Step 2</span>
+              <div>
+                <h3>Write with the brand language still in view</h3>
+                <p>Develop captions, hooks, edits, and platform variations with the voice, visual direction, and recent performance still close to hand.</p>
+              </div>
+            </div>
+
+            <div class="workflow-step reveal delay-2">
+              <span>Step 3</span>
+              <div>
+                <h3>Route approvals without the scavenger hunt</h3>
+                <p>Keep comments, revisions, and signoff in the workflow so nobody is piecing together final copy from several different places.</p>
+              </div>
+            </div>
+
+            <div class="workflow-step reveal delay-3">
+              <span>Step 4</span>
+              <div>
+                <h3>Review what deserves another round</h3>
+                <p>Use performance and creative context together to decide which ideas should keep stretching and which ones should be retired.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="quote-band">
+      <div class="page-shell">
+        <blockquote class="reveal">For teams who need the social calendar to move faster without coming out flatter.</blockquote>
+        <footer class="reveal delay-1">Built for brand marketers, content leads, agency teams, and founders carrying a real publishing rhythm.</footer>
+      </div>
+    </section>
+
+    <section class="section page-shell" id="teams">
+      <div class="section-topline reveal">
+        <div class="section-label">Who it is for</div>
+        <div class="section-kicker">Different teams, same pressure</div>
+      </div>
+
+      <div class="teams-grid">
+        <h2 class="section-title reveal">Useful for the people balancing taste, speed, and accountability every week.</h2>
+
+        <div class="teams-list">
+          <article class="reveal">
+            <h3>In-house brand teams</h3>
+            <p>Keep launches, recurring series, approvals, and reporting inside one rhythm without losing the tone of the brand.</p>
+          </article>
+
+          <article class="reveal delay-1">
+            <h3>Agencies and studios</h3>
+            <p>Move across multiple clients with cleaner briefs, clearer approvals, and less repeated context-switching.</p>
+          </article>
+
+          <article class="reveal delay-2">
+            <h3>Lean marketing leads</h3>
+            <p>Run the full calendar with enough structure to stay on schedule and enough flexibility to keep the work interesting.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="page-shell" id="contact">
+      <div class="cta-grid">
+        <div>
+          <div class="section-label reveal">Start here</div>
+          <h2 class="cta-title reveal delay-1">Bring the next month of social into one place and keep the work feeling like yours.</h2>
+          <p class="cta-copy reveal delay-2">
+            Use Krowdr to organize the campaign, tighten the handoff, and give the team a stronger place to make decisions than scattered docs, feedback threads, and end-of-month guesswork.
+          </p>
+          <div class="cta-actions reveal delay-3">
+            <a class="button button-solid" href="auth.html#register">Get Started</a>
+            <a class="button button-ghost" href="auth.html#login">Log In</a>
+          </div>
+        </div>
+
+        <div class="cta-rail reveal delay-2">
+          <div>
+            <strong>For</strong>
+            <span>Social strategists, content directors, creative marketers, brand leads, founders</span>
+          </div>
+          <div>
+            <strong>Best fit</strong>
+            <span>Teams managing multiple campaigns, recurring publishing, or approval-heavy content calendars</span>
+          </div>
+          <div>
+            <strong>Start with</strong>
+            <span>Your next launch, monthly cycle, client account, or editorial reset</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div>Krowdr, 2026</div>
+      <div class="footer-links">
+        <a href="features.html">Features</a>
+        <a href="#why">Why marketers switch</a>
+        <a href="#workflow">Workflow</a>
+        <a href="#teams">Who it is for</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const body = document.body;
+    const hero = document.getElementById("hero");
+    const revealItems = document.querySelectorAll(".reveal");
+
+    window.addEventListener("load", () => {
+      body.classList.add("is-ready");
+    });
+
+    const revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        threshold: 0.16,
+        rootMargin: "0px 0px -60px 0px"
+      }
+    );
+
+    revealItems.forEach((item) => revealObserver.observe(item));
+
+    const heroObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          body.classList.toggle("nav-light", !entry.isIntersecting);
+        });
+      },
+      {
+        threshold: 0.2
+      }
+    );
+
+    heroObserver.observe(hero);
+
+    let ticking = false;
+
+    function updateMotion() {
+      const scrollY = window.scrollY || window.pageYOffset;
+      const heroShift = Math.min(scrollY * 0.08, 42);
+      const workflow = document.getElementById("workflow");
+      const workflowTop = workflow.getBoundingClientRect().top + scrollY;
+      const workflowProgress = Math.max(0, Math.min(scrollY - workflowTop + window.innerHeight * 0.72, 420));
+      const studioShift = Math.min(workflowProgress * 0.05, 24);
+
+      document.documentElement.style.setProperty("--hero-shift", heroShift + "px");
+      document.documentElement.style.setProperty("--studio-shift", studioShift + "px");
+      ticking = false;
+    }
+
+    function onScroll() {
+      if (!ticking) {
+        window.requestAnimationFrame(updateMotion);
+        ticking = true;
+      }
+    }
+
+    updateMotion();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", updateMotion);
+  </script>
+</body>
+</html>

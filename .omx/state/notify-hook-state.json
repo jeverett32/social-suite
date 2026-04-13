@@ -1,0 +1,21 @@
+{
+  "recent_turns": {
+    "019d878f-99e2-7e81-81eb-7b94f1a4180e|019d878f-9a46-7b22-b4b7-75e1f19b5790|agent-turn-complete": 1776095835925,
+    "019d8780-157a-7ab0-89e5-9c9975a0f186|019d878f-999b-71c1-8bd3-e6207247f418|agent-turn-complete": 1776096272098,
+    "019d8780-157a-7ab0-89e5-9c9975a0f186|019d8798-1c52-7be1-bcc3-1dd7ff2b9530|agent-turn-complete": 1776096628105,
+    "019d8780-157a-7ab0-89e5-9c9975a0f186|019d879c-eb83-75d1-9dfb-18bd48e4825c|agent-turn-complete": 1776096740825,
+    "019d8780-157a-7ab0-89e5-9c9975a0f186|019d87ac-7736-71f0-afe8-e55424e39ecd|agent-turn-complete": 1776098265530,
+    "019d8780-157a-7ab0-89e5-9c9975a0f186|019d87b8-a85f-7783-9319-1841df69f1b2|agent-turn-complete": 1776098564110,
+    "019d8780-157a-7ab0-89e5-9c9975a0f186|019d87b9-d847-7dc1-93da-16b2a06f92dc|agent-turn-complete": 1776098628426,
+    "019d8780-157a-7ab0-89e5-9c9975a0f186|019d87c6-5b76-7392-9f90-699bf6273d58|agent-turn-complete": 1776099525408,
+    "019d8780-157a-7ab0-89e5-9c9975a0f186|019d87ce-6d31-7492-9dc1-8b11e7cbe1e2|agent-turn-complete": 1776100506948,
+    "019d8780-157a-7ab0-89e5-9c9975a0f186|019d87dd-6e15-7900-b65e-83416c134106|agent-turn-complete": 1776101028197,
+    "019d8780-157a-7ab0-89e5-9c9975a0f186|019d87e2-e5f5-7f71-9aed-773b4e95267b|agent-turn-complete": 1776101443998
+  },
+  "last_event_at": "2026-04-13T17:30:44.001Z",
+  "current_session_key": "019d8780-157a-7ab0-89e5-9c9975a0f186",
+  "current_session_started_at": "2026-04-13T16:04:32.169Z",
+  "current_session_last_turn_at": "2026-04-13T17:30:44.121Z",
+  "current_session_project_path": "C:\\Users\\johne\\Documents\\GitHub\\social-suite",
+  "current_session_project_name": "social-suite"
+}

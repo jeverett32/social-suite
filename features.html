@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Krowdr Features - Everything your social team needs in one rhythm.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --paper: #ffffff;
+      --ink: #111111;
+      --muted: #625d58;
+      --line: rgba(17, 17, 17, 0.14);
+      --wash: #f4efe8;
+      --warm: #c16747;
+      --olive: #727454;
+      --blue: #3f5870;
+      --content: 1320px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      overflow-x: hidden;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Inter", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    a { color: inherit; text-decoration: none; }
+    .page-shell { width: 100%; max-width: var(--content); margin: 0 auto; padding: 0 28px; }
+    .site-nav {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(255, 255, 255, 0.94);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .nav-inner {
+      width: 100%;
+      max-width: var(--content);
+      margin: 0 auto;
+      min-height: 78px;
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .brand { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+    .brand-mark { color: var(--warm); }
+    .nav-links, .nav-actions { display: flex; align-items: center; gap: 22px; }
+    .nav-links a { font-size: 14px; color: var(--muted); }
+    .nav-links a.is-current, .nav-links a:hover { color: var(--ink); }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 18px;
+      border: 1px solid currentColor;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+    }
+    .button:hover { transform: translateY(-1px); }
+    .button-ghost { color: var(--ink); }
+    .button-solid { background: var(--ink); border-color: var(--ink); color: #ffffff; }
+    .hero { padding: 104px 0 44px; border-bottom: 1px solid var(--line); }
+    .hero-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 40px; align-items: end; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .eyebrow::before { content: ""; width: 24px; height: 1px; background: var(--warm); }
+    h1, h2 {
+      margin: 0;
+      font-family: "Newsreader", serif;
+      font-weight: 500;
+      line-height: 0.98;
+      letter-spacing: -0.03em;
+      text-wrap: balance;
+    }
+    .hero-title { max-width: 760px; font-size: clamp(48px, 7vw, 88px); }
+    .hero-title .warm { color: var(--warm); }
+    .hero-title .olive { color: var(--olive); }
+    .hero-copy {
+      max-width: 620px;
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 19px;
+      line-height: 1.75;
+    }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+    .hero-index { border-top: 1px solid var(--line); }
+    .hero-index div {
+      display: grid;
+      grid-template-columns: 92px 1fr;
+      gap: 18px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .hero-index span, .feature-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .hero-index p, .feature-copy, .feature-list li, .placeholder-note, .summary-copy {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .summary-band { padding: 22px 0 0; }
+    .summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; padding: 24px 0 26px; }
+    .summary-item { border-top: 1px solid var(--line); padding-top: 12px; }
+    .summary-item h3 { margin: 0 0 8px; font-size: 19px; font-weight: 600; }
+    .section { padding: 88px 0; border-top: 1px solid var(--line); }
+    .section-topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 24px;
+      margin-bottom: 30px;
+    }
+    .section-label { color: var(--muted); font-size: 14px; }
+    .section-kicker { color: var(--warm); font-size: 14px; font-weight: 600; }
+    .feature-block {
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      gap: 42px;
+      align-items: start;
+      margin-top: 38px;
+    }
+    .feature-title { font-size: clamp(34px, 4vw, 56px); margin-bottom: 18px; }
+    .feature-copy { max-width: 560px; font-size: 18px; }
+    .feature-list { margin: 24px 0 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+    .feature-list li { padding: 14px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+    .placeholder { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 18px 0; }
+    .placeholder-stage {
+      min-height: 420px;
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 16px;
+      background: var(--wash);
+      padding: 20px;
+    }
+    .placeholder-main, .placeholder-side, .placeholder-bottom {
+      border: 1px solid rgba(17, 17, 17, 0.12);
+      background: rgba(255, 255, 255, 0.72);
+    }
+    .placeholder-main { display: grid; grid-template-rows: auto 1fr auto; gap: 14px; padding: 18px; }
+    .placeholder-main .topline, .placeholder-side .topline, .placeholder-bottom .topline {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .placeholder-main .canvas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .canvas div, .stack div, .placeholder-bottom .row div {
+      border: 1px solid rgba(17, 17, 17, 0.08);
+      background: rgba(244, 239, 232, 0.9);
+      color: var(--ink);
+      display: flex;
+      align-items: end;
+    }
+    .canvas div { min-height: 148px; padding: 14px; font-size: 14px; }
+    .placeholder-side { display: grid; grid-template-rows: auto 1fr; gap: 12px; padding: 18px; }
+    .stack { display: grid; gap: 12px; }
+    .stack div { min-height: 88px; padding: 14px; font-size: 14px; }
+    .placeholder-bottom { margin-top: 16px; padding: 18px; display: grid; gap: 12px; }
+    .placeholder-bottom .row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .placeholder-bottom .row div { min-height: 78px; padding: 12px; font-size: 13px; }
+    .placeholder-note { margin-top: 16px; font-size: 14px; }
+    .quote-band { padding: 82px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .quote-band blockquote {
+      margin: 0;
+      max-width: 1040px;
+      font-family: "Newsreader", serif;
+      font-size: clamp(36px, 5vw, 62px);
+      font-weight: 500;
+      line-height: 1.03;
+      letter-spacing: -0.03em;
+    }
+    .quote-band footer { margin-top: 18px; color: var(--muted); font-size: 15px; }
+    .cta { padding: 88px 0 96px; border-top: 1px solid var(--line); }
+    .cta-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 42px; align-items: start; }
+    .cta-title { font-size: clamp(38px, 4.5vw, 58px); margin-bottom: 18px; }
+    .cta-copy { max-width: 620px; color: var(--muted); font-size: 18px; line-height: 1.75; }
+    .cta-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+    .cta-rail { border-top: 1px solid var(--line); }
+    .cta-rail div {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr);
+      gap: 14px;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .cta-rail strong {
+      color: var(--ink);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .site-footer { border-top: 1px solid var(--line); padding: 20px 0 36px; }
+    .footer-inner {
+      width: 100%;
+      max-width: var(--content);
+      margin: 0 auto;
+      padding: 0 28px;
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .footer-links { display: flex; gap: 18px; flex-wrap: wrap; }
+    .hero .reveal,
+    .summary-band .reveal {
+      opacity: 1;
+      transform: none;
+    }
+    .reveal { opacity: 0; transform: translateY(32px); transition: opacity 0.8s ease, transform 0.8s ease; }
+    .reveal.is-visible { opacity: 1; transform: translateY(0); }
+    .delay-1 { transition-delay: 0.08s; }
+    .delay-2 { transition-delay: 0.16s; }
+    @media (max-width: 1100px) {
+      .hero-grid, .feature-block, .cta-grid { grid-template-columns: 1fr; }
+      .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 860px) {
+      .nav-links { display: none; }
+      .placeholder-stage, .placeholder-main .canvas, .placeholder-bottom .row { grid-template-columns: 1fr; }
+      .summary-grid { grid-template-columns: 1fr; }
+      .section, .cta { padding: 72px 0; }
+      .section-topline { display: grid; grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .page-shell, .nav-inner, .footer-inner { padding-left: 14px; padding-right: 14px; }
+      .nav-actions .button-ghost { display: none; }
+      .hero-actions .button, .cta-actions .button { width: 100%; }
+      .hero-index div, .cta-rail div, .footer-inner { grid-template-columns: 1fr; display: grid; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .reveal, .button { transition: none; transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="site-nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html"><span class="brand-mark">Krowdr</span></a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a class="is-current" href="features.html">Features</a>
+        <a href="#platform">Platform</a>
+        <a href="#workflow">How it works</a>
+      </div>
+      <div class="nav-actions">
+        <a class="button button-ghost" href="auth.html#login">Log In</a>
+        <a class="button button-solid" href="auth.html#register">Get Started</a>
+      </div>
+    </div>
+  </nav>
+  <main>
+    <section class="hero page-shell">
+      <div class="hero-grid">
+        <div>
+          <div class="eyebrow reveal">Platform features for the full social marketing workflow.</div>
+          <h1 class="hero-title reveal delay-1">Everything the app can do once your <span class="warm">content operation</span> lives in one <span class="olive">working rhythm.</span></h1>
+          <p class="hero-copy reveal delay-2">Krowdr is designed to keep campaign planning, writing, approvals, scheduling, reporting, and team coordination close together. This page walks through the platform now, with room to layer in real product screenshots and videos once the app is live.</p>
+          <div class="hero-actions reveal delay-2">
+            <a class="button button-solid" href="auth.html#register">Get Started</a>
+            <a class="button button-ghost" href="index.html">Back to landing</a>
+          </div>
+        </div>
+        <div class="hero-index reveal delay-1">
+          <div><span>Plan</span><p>Campaign briefs, launch windows, goals, references, approvals, and status tracking.</p></div>
+          <div><span>Create</span><p>Caption drafting, repurposing, variations, tone direction, and content iteration.</p></div>
+          <div><span>Publish</span><p>Scheduling, review queues, content calendars, and cross-channel timing decisions.</p></div>
+          <div><span>Review</span><p>Performance analysis, recap workflows, reporting context, and team accountability.</p></div>
+        </div>
+      </div>
+      <div class="summary-band">
+        <div class="summary-grid reveal" id="platform">
+          <div class="summary-item"><span class="feature-label">Campaign HQ</span><h3>Keep launches legible</h3><p class="summary-copy">Every campaign gets one source of truth for goals, audience, timing, references, and current status.</p></div>
+          <div class="summary-item"><span class="feature-label">Content studio</span><h3>Write with context</h3><p class="summary-copy">Draft captions, platform cuts, and creative directions with the brand voice and brief still in view.</p></div>
+          <div class="summary-item"><span class="feature-label">Review flow</span><h3>Approvals stay attached</h3><p class="summary-copy">Comments, signoff, and revisions stay near the work instead of scattering across channels.</p></div>
+          <div class="summary-item"><span class="feature-label">Reporting</span><h3>Read the month clearly</h3><p class="summary-copy">Tie performance back to the content choices that drove it so the next cycle starts smarter.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section page-shell" id="workflow">
+      <div class="section-topline reveal">
+        <div class="section-label">Walkthrough</div>
+        <div class="section-kicker">A feature set built around the real social workflow</div>
+      </div>
+
+      <div class="feature-block">
+        <div>
+          <h2 class="feature-title reveal">Campaign planning that starts with the brief, not with a blank calendar.</h2>
+          <p class="feature-copy reveal delay-1">Build campaigns around objectives, launch dates, target channels, references, stakeholders, and status. The goal is not just to track work, but to keep the reason behind the work visible while the month is moving.</p>
+          <ul class="feature-list reveal delay-2">
+            <li>Create campaign hubs with goals, timing, audience notes, and references.</li>
+            <li>Track launch phases, content dependencies, and readiness across multiple workstreams.</li>
+            <li>Keep briefs, notes, and creative direction connected to the content being produced.</li>
+          </ul>
+        </div>
+        <div class="placeholder reveal delay-1">
+          <div class="placeholder-stage">
+            <div>
+              <div class="placeholder-main">
+                <div class="topline"><span>Campaign workspace</span><span>Preview space</span></div>
+                <div class="canvas"><div>Launch brief</div><div>Channel plan</div><div>Approval queue</div></div>
+                <div class="placeholder-note">Future screenshot area for campaign setup, timelines, and launch status.</div>
+              </div>
+              <div class="placeholder-bottom">
+                <div class="topline"><span>Supporting views</span><span>Future app media</span></div>
+                <div class="row"><div>Milestones</div><div>Owners</div><div>Dependencies</div><div>Status</div></div>
+              </div>
+            </div>
+            <div class="placeholder-side">
+              <div class="topline"><span>Quick panels</span><span>Notes</span></div>
+              <div class="stack"><div>Audience notes</div><div>Reference pulls</div><div>Launch checklist</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-block">
+        <div>
+          <h2 class="feature-title reveal">A content studio for drafting, revising, and repurposing without losing the brand voice.</h2>
+          <p class="feature-copy reveal delay-1">Write captions, hooks, and social variations in a workspace that keeps the brand language, source material, and platform context visible. The writing process should feel guided, not generic.</p>
+          <ul class="feature-list reveal delay-2">
+            <li>Draft posts for multiple channels from the same campaign source.</li>
+            <li>Create alternate hooks, tonal variations, and cutdowns without losing context.</li>
+            <li>Save voice notes, brand reminders, and recurring phrases the team reuses often.</li>
+          </ul>
+        </div>
+        <div class="placeholder reveal delay-1">
+          <div class="placeholder-stage">
+            <div>
+              <div class="placeholder-main">
+                <div class="topline"><span>Writing canvas</span><span>Preview space</span></div>
+                <div class="canvas"><div>Main caption</div><div>Channel variation</div><div>Short-form cutdown</div></div>
+                <div class="placeholder-note">Future screenshot area for caption drafting, voice controls, and content variations.</div>
+              </div>
+              <div class="placeholder-bottom">
+                <div class="topline"><span>Connected context</span><span>Future app media</span></div>
+                <div class="row"><div>Brand voice</div><div>Asset references</div><div>Notes</div><div>Versions</div></div>
+              </div>
+            </div>
+            <div class="placeholder-side">
+              <div class="topline"><span>Quick panels</span><span>Notes</span></div>
+              <div class="stack"><div>Saved tone cues</div><div>Repurpose options</div><div>Revision history</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-block">
+        <div>
+          <h2 class="feature-title reveal">Approvals, scheduling, and publishing in one visible chain.</h2>
+          <p class="feature-copy reveal delay-1">Keep every piece of content moving through review, signoff, and scheduling with fewer handoff gaps. That means a cleaner calendar, clearer ownership, and fewer late-stage surprises.</p>
+          <ul class="feature-list reveal delay-2">
+            <li>Route content to specific reviewers with clear status changes and notes.</li>
+            <li>Schedule by campaign, channel, or content type with a calendar view that stays readable.</li>
+            <li>Track what is ready, blocked, approved, published, or waiting on feedback.</li>
+          </ul>
+        </div>
+        <div class="placeholder reveal delay-1">
+          <div class="placeholder-stage">
+            <div>
+              <div class="placeholder-main">
+                <div class="topline"><span>Publishing calendar</span><span>Preview space</span></div>
+                <div class="canvas"><div>Weekly calendar</div><div>Approval states</div><div>Scheduled posts</div></div>
+                <div class="placeholder-note">Future screenshot area for review queues, scheduled content, and calendar visibility.</div>
+              </div>
+              <div class="placeholder-bottom">
+                <div class="topline"><span>Supporting views</span><span>Future app media</span></div>
+                <div class="row"><div>Queue</div><div>Channel filters</div><div>Assignees</div><div>Publish times</div></div>
+              </div>
+            </div>
+            <div class="placeholder-side">
+              <div class="topline"><span>Quick panels</span><span>Notes</span></div>
+              <div class="stack"><div>Reviewer notes</div><div>Pending approvals</div><div>Publishing windows</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-block">
+        <div>
+          <h2 class="feature-title reveal">Reporting that ties performance back to the creative decisions behind it.</h2>
+          <p class="feature-copy reveal delay-1">End the month with more than totals. Track which campaigns hit, which formats stalled, and what the team should repeat or retire based on both results and creative context.</p>
+          <ul class="feature-list reveal delay-2">
+            <li>Review results by campaign, channel, format, or recurring content series.</li>
+            <li>Connect post performance to copy decisions, timing, and creative direction.</li>
+            <li>Build recaps that help the next planning cycle instead of just documenting the last one.</li>
+          </ul>
+        </div>
+        <div class="placeholder reveal delay-1">
+          <div class="placeholder-stage">
+            <div>
+              <div class="placeholder-main">
+                <div class="topline"><span>Reporting workspace</span><span>Preview space</span></div>
+                <div class="canvas"><div>Campaign recap</div><div>Channel view</div><div>Creative notes</div></div>
+                <div class="placeholder-note">Future screenshot area for analytics dashboards, reporting notes, and monthly recaps.</div>
+              </div>
+              <div class="placeholder-bottom">
+                <div class="topline"><span>Supporting views</span><span>Future app media</span></div>
+                <div class="row"><div>Top posts</div><div>Drop-offs</div><div>Recurring wins</div><div>Next steps</div></div>
+              </div>
+            </div>
+            <div class="placeholder-side">
+              <div class="topline"><span>Quick panels</span><span>Notes</span></div>
+              <div class="stack"><div>Monthly insights</div><div>Format trends</div><div>Follow-up actions</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="quote-band">
+      <div class="page-shell">
+        <blockquote class="reveal">A product for teams who want the social operation to feel tighter without making the content feel templated.</blockquote>
+        <footer class="reveal delay-1">Real interface captures can replace these framed placeholders as soon as the app is ready.</footer>
+      </div>
+    </section>
+
+    <section class="cta page-shell">
+      <div class="cta-grid">
+        <div>
+          <h2 class="cta-title reveal">Ready to move from the landing page into the actual product flow?</h2>
+          <p class="cta-copy reveal delay-1">Use the demo auth page to explore the entry point now, then swap in the real app routes and UI captures as the platform takes shape.</p>
+          <div class="cta-actions reveal delay-2">
+            <a class="button button-solid" href="auth.html#register">Get Started</a>
+            <a class="button button-ghost" href="auth.html#login">Log In</a>
+          </div>
+        </div>
+        <div class="cta-rail reveal delay-1">
+          <div><strong>Use this page for</strong><span>Explaining the product clearly before the fully built app can speak for itself.</span></div>
+          <div><strong>Swap in later</strong><span>Live screenshots, dashboard recordings, workflow clips, and customer-specific feature proof.</span></div>
+          <div><strong>Keep</strong><span>The pacing, typography, and section structure once real product media replaces the placeholders.</span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div>Krowdr, 2026</div>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="features.html">Features</a>
+        <a href="auth.html#login">Log In</a>
+      </div>
+    </div>
+  </footer>
+  <script>
+    const revealItems = document.querySelectorAll(".reveal");
+    function primeVisibleReveals() {
+      revealItems.forEach((item) => {
+        const rect = item.getBoundingClientRect();
+        if (rect.top < window.innerHeight * 0.95) {
+          item.classList.add("is-visible");
+        }
+      });
+    }
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.16, rootMargin: "0px 0px -60px 0px" });
+    revealItems.forEach((item) => revealObserver.observe(item));
+    window.addEventListener("load", primeVisibleReveals);
+    window.addEventListener("resize", primeVisibleReveals);
+  </script>
+</body>
+</html>
