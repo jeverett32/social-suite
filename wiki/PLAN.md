@@ -1,5 +1,32 @@
 # Krowdr — Production Plan
 
+## Current Implementation Status (2026-04-13)
+
+This repo currently contains a polished UI demo (marketing + dashboard shell) with mock data and demo auth.
+
+- Marketing pages are server-rendered; browser-only reveal/scroll effects are isolated to client components.
+- Demo auth is cookie-based and protected via middleware with `next` redirects.
+- Schedule/Plan group posts by day using a workspace timezone cookie (not UTC date splitting).
+- Settings has a simple sub-nav layout (`/settings`, `/settings/team`, `/settings/integrations`).
+- App Router guardrails are in place (`not-found`, `error`, dashboard `loading`).
+- Lint/typecheck/build all pass.
+
+Key implementation files:
+
+- `middleware.ts`: route protection
+- `src/lib/demo-constants.ts`, `src/lib/demo-session.ts`: demo cookies + helpers
+- `src/lib/datetime.ts`: timezone-safe date keys/formatting
+- `src/app/login/login-client.tsx`: sets demo session cookie and navigates to `next`
+- `src/app/(dashboard)/schedule/page.tsx`, `src/app/(dashboard)/plan/page.tsx`: timezone-safe grouping
+- `src/components/marketing/landing-effects.tsx`, `src/components/marketing/features-effects.tsx`: marketing effects
+
+Immediate product follow-ups (still demo-scope):
+
+- Add a visible logout action (clear `krowdr_demo_session`).
+- Mobile sidebar (collapse / drawer) and keyboard navigation polish.
+- Continue a11y pass: remaining icon-only buttons, focus states, and table semantics.
+- Consider extracting large inline marketing CSS strings into CSS modules.
+
 ## 1. Vision & Goals
 
 Krowdr is a production-grade social media marketing platform that elevates the Learn -> Plan -> Predict -> Draft workflow pioneered in the Intex-II project into a complete, multi-platform tool for professional social media teams. Where Intex-II proved the concept — that analytics should inform planning, planning should be validated by prediction, and prediction should feed directly into content creation — Krowdr delivers on that promise with real platform API integrations, a unified inbox, per-account ML models, weekly retraining pipelines, post scheduling, and the deep analytics and first-party data tracking that the MOSCOW analysis identifies as must-haves. The goal is a single tool that replaces the fragmented stack of Hootsuite + Sprout Social + Canva + spreadsheets that most social teams cobble together, while solving industry gaps like burnout prevention, AI slop filtering, and hyper-local community engagement that no incumbent addresses.

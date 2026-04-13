@@ -15,7 +15,7 @@ export default function OverviewPage() {
   return (
     <div>
       <PageHeader
-        title="Good morning, John."
+        title="Good morning."
         description="Here's what's happening across your accounts today."
       />
 
@@ -29,7 +29,7 @@ export default function OverviewPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Quick Actions */}
         <div className="bg-panel border border-border rounded-lg p-5">
-          <h2 className="font-serif text-base font-medium text-ink mb-4">Quick actions</h2>
+          <h2 className="text-sm font-semibold text-ink mb-4">Quick actions</h2>
           <div className="space-y-2">
             {quickActions.map(({ label, href, icon: Icon, color }) => (
               <Link
@@ -48,7 +48,7 @@ export default function OverviewPage() {
         {/* Upcoming posts */}
         <div className="lg:col-span-2 bg-panel border border-border rounded-lg p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-serif text-base font-medium text-ink">Upcoming posts</h2>
+            <h2 className="text-sm font-semibold text-ink">Upcoming posts</h2>
             <Link href="/schedule" className="text-xs text-warm hover:underline">
               View all
             </Link>

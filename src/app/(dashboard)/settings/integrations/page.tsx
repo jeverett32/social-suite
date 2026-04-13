@@ -1,0 +1,186 @@
+"use client";
+
+import { useState } from "react";
+import { PlatformBadge } from "@/components/shared/platform-badge";
+import { cn } from "@/lib/utils";
+import {
+  Key,
+  CheckCircle,
+  XCircle,
+  RefreshCw,
+  Unlink,
+  ExternalLink,
+  AlertCircle,
+} from "lucide-react";
+
+type PlatformId = "instagram" | "tiktok" | "linkedin" | "x" | "facebook" | "youtube" | "pinterest";
+
+interface ConnectedAccount {
+  id: string;
+  platformId: PlatformId;
+  username: string;
+  connectedAt: string;
+  status: "connected" | "error" | "expired";
+  lastSync?: string;
+}
+
+const mockAccounts: ConnectedAccount[] = [
+  { id: "a1", platformId: "instagram", username: "@acme_official", connectedAt: "2026-01-15", status: "connected", lastSync: "2h ago" },
+  { id: "a2", platformId: "facebook", username: "Acme Marketing", connectedAt: "2026-01-15", status: "connected", lastSync: "2h ago" },
+  { id: "a3", platformId: "linkedin", username: "Acme Inc.", connectedAt: "2026-02-01", status: "connected", lastSync: "1d ago" },
+  { id: "a4", platformId: "tiktok", username: "@acme_tiktok", connectedAt: "2026-03-10", status: "error", lastSync: "Failed" },
+  { id: "a5", platformId: "x", username: "@acme_mktg", connectedAt: "2026-02-20", status: "connected", lastSync: "30m ago" },
+];
+
+const availablePlatforms: { id: PlatformId; name: string; description: string }[] = [
+  { id: "instagram", name: "Instagram", description: "Posts, stories, reels, and DMs" },
+  { id: "facebook", name: "Facebook", description: "Pages, posts, and messages" },
+  { id: "linkedin", name: "LinkedIn", description: "Company pages and posts" },
+  { id: "tiktok", name: "TikTok", description: "Video posts and analytics" },
+  { id: "x", name: "X (Twitter)", description: "Tweets and threads" },
+  { id: "youtube", name: "YouTube", description: "Video analytics and comments" },
+  { id: "pinterest", name: "Pinterest", description: "Pins and boards" },
+];
+
+const statusConfig = {
+  connected: { icon: CheckCircle, color: "text-[#536443]", bg: "bg-[#536443]/10", label: "Connected" },
+  error: { icon: XCircle, color: "text-[#9e4d3b]", bg: "bg-[#9e4d3b]/10", label: "Error" },
+  expired: { icon: AlertCircle, color: "text-[#a28443]", bg: "bg-[#a28443]/10", label: "Expired" },
+};
+
+function ConnectedAccountsList({ accounts }: { accounts: ConnectedAccount[] }) {
+  return (
+    <div className="bg-panel border border-border rounded-lg p-5">
+      <h2 className="text-sm font-semibold text-ink mb-4">Connected accounts</h2>
+      {accounts.length === 0 ? (
+        <p className="text-sm text-[#625d58]">No accounts connected yet.</p>
+      ) : (
+        <div className="space-y-3">
+          {accounts.map((account) => {
+            const status = statusConfig[account.status];
+            const StatusIcon = status.icon;
+            return (
+              <div
+                key={account.id}
+                className="flex items-center justify-between p-4 bg-shell rounded-lg border border-border"
+              >
+                <div className="flex items-center gap-3">
+                  <PlatformBadge platformId={account.platformId} />
+                  <div>
+                    <p className="text-sm font-medium text-ink">{account.username}</p>
+                    <p className="text-[10px] text-[#625d58]">
+                      Connected {new Date(account.connectedAt).toLocaleDateString()}
+                      {account.lastSync && ` · Last sync ${account.lastSync}`}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={cn("flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-full", status.bg, status.color)}>
+                    <StatusIcon className="size-3" />
+                    {status.label}
+                  </span>
+                  {account.status === "connected" && (
+                    <button className="p-2 hover:bg-panel rounded transition-colors text-[#625d58]">
+                      <RefreshCw className="size-4" />
+                    </button>
+                  )}
+                  <button className="p-2 hover:bg-panel rounded transition-colors text-[#625d58] hover:text-[#9e4d3b]">
+                    <Unlink className="size-4" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AvailablePlatforms({ connected }: { connected: PlatformId[] }) {
+  return (
+    <div className="bg-panel border border-border rounded-lg p-5">
+      <h2 className="text-sm font-semibold text-ink mb-4">Connect a new account</h2>
+      <div className="space-y-2">
+        {availablePlatforms.map((platform) => {
+          const isConnected = connected.includes(platform.id);
+          return (
+            <div
+              key={platform.id}
+              className={cn(
+                "flex items-center justify-between p-4 rounded-lg border transition-colors",
+                isConnected ? "bg-shell/50 border-border opacity-60" : "bg-shell border-border hover:border-warm/40"
+              )}
+            >
+              <div className="flex items-center gap-3">
+                <PlatformBadge platformId={platform.id} />
+                <div>
+                  <p className="text-sm font-medium text-ink">{platform.name}</p>
+                  <p className="text-[10px] text-[#625d58]">{platform.description}</p>
+                </div>
+              </div>
+              <button
+                disabled={isConnected}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
+                  isConnected
+                    ? "bg-shell text-[#625d58] cursor-not-allowed"
+                    : "bg-warm text-paper hover:bg-warm/90"
+                )}
+              >
+                {isConnected ? "Connected" : "Connect"}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ApiKeysSection() {
+  const [showKey, setShowKey] = useState(false);
+
+  return (
+    <div className="bg-panel border border-border rounded-lg p-5">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-sm font-semibold text-ink">API Keys</h2>
+        <button className="text-xs text-warm hover:underline">Generate new key</button>
+      </div>
+      <p className="text-xs text-[#625d58] mb-4">
+        Use API keys to integrate Krowdr with your own applications.
+      </p>
+      <div className="p-4 bg-shell rounded-lg border border-border">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-ink">Production Key</p>
+            <p className="text-xs text-[#625d58] font-mono mt-1">
+              {showKey ? "demo_live_key_abc123xyz789" : "demo_live_key_••••••••••"}
+            </p>
+            <p className="text-[10px] text-[#625d58] mt-1">Created Jan 15, 2026</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowKey(!showKey)}
+              className="p-2 hover:bg-panel rounded transition-colors text-[#625d58]"
+            >
+              {showKey ? <Key className="size-4" /> : <ExternalLink className="size-4" />}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function IntegrationsPage() {
+  const connectedPlatforms = mockAccounts.filter((a) => a.status === "connected").map((a) => a.platformId);
+
+  return (
+    <div className="max-w-2xl space-y-6">
+      <ConnectedAccountsList accounts={mockAccounts} />
+      <AvailablePlatforms connected={connectedPlatforms} />
+      <ApiKeysSection />
+    </div>
+  );
+}

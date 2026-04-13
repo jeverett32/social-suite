@@ -62,7 +62,7 @@ export default function DraftPage() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Input panel */}
         <div className="lg:col-span-2 bg-panel border border-border rounded-lg p-5">
-          <h2 className="font-serif text-base font-medium text-ink mb-5">Content brief</h2>
+          <h2 className="text-sm font-semibold text-ink mb-5">Content brief</h2>
 
           {/* Platform selector */}
           <div className="mb-4">

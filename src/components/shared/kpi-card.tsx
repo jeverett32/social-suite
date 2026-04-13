@@ -20,7 +20,7 @@ export function KpiCard({ metric, className }: KpiCardProps) {
       <p className="text-[11px] uppercase tracking-widest text-[#625d58] font-medium">
         {label}
       </p>
-      <p className="font-serif text-3xl font-medium text-ink leading-none">
+      <p className="text-3xl font-bold text-ink leading-none tabular-nums">
         {formatted}
       </p>
       <div

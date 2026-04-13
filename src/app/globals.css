@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Newsreader:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -22,8 +20,8 @@
     --accent-foreground: 0 0% 7%;
     --destructive: 10 51% 41%;
     --destructive-foreground: 0 0% 100%;
-    --border: 40 15% 90%;
-    --input: 40 15% 90%;
+    --border: 0 0% 89%;
+    --input: 0 0% 89%;
     --ring: 18 42% 52%;
     --radius: 0.375rem;
   }
@@ -36,10 +34,6 @@
   body {
     @apply bg-shell text-ink antialiased;
     font-family: var(--font-inter), system-ui, sans-serif;
-  }
-  h1, h2, h3 {
-    font-family: var(--font-newsreader), Georgia, serif;
-    letter-spacing: -0.03em;
   }
 }
 
