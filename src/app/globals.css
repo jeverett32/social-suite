@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Newsreader:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 7%;
+    --card: 40 33% 98%;
+    --card-foreground: 0 0% 7%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 7%;
+    --primary: 18 42% 52%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 40 15% 96%;
+    --secondary-foreground: 0 0% 7%;
+    --muted: 40 20% 96%;
+    --muted-foreground: 20 7% 37%;
+    --accent: 40 20% 94%;
+    --accent-foreground: 0 0% 7%;
+    --destructive: 10 51% 41%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 40 15% 90%;
+    --input: 40 15% 90%;
+    --ring: 18 42% 52%;
+    --radius: 0.375rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-shell text-ink antialiased;
+    font-family: var(--font-inter), system-ui, sans-serif;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-newsreader), Georgia, serif;
+    letter-spacing: -0.03em;
+  }
+}
+
+/* Scroll reveal utility */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
