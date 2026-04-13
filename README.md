@@ -1,2 +1,3 @@
-# social-suite
-a social media marketing tool
+# Social Suite
+
+Social Suite is a social media marketing tool
