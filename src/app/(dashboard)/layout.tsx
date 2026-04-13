@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { AccountSwitcher } from "@/components/shared/account-switcher";
+import { getDemoSessionClient } from "@/lib/demo-session";
 import {
   LayoutDashboard,
   BarChart3,
@@ -38,18 +39,27 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const session = getDemoSessionClient();
+  const displayName = session?.fullName || "John Everett";
+  const initials = displayName
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0])
+    .join("")
+    .toUpperCase();
 
   return (
     <div className="flex h-screen overflow-hidden bg-shell">
       {/* Sidebar */}
-      <aside className="w-[248px] flex-shrink-0 flex flex-col bg-[#fcfaf6] border-r border-border overflow-y-auto">
+      <aside className="w-[248px] flex-shrink-0 flex flex-col bg-white border-r border-border overflow-y-auto">
         {/* Logo */}
         <div className="px-5 pt-5 pb-4 border-b border-border">
           <Link href="/" className="flex items-center gap-2">
             <span className="size-7 rounded-md bg-warm flex items-center justify-center">
-              <span className="text-paper text-sm font-bold font-serif">K</span>
+              <span className="text-paper text-sm font-bold">K</span>
             </span>
-            <span className="font-serif text-lg font-medium text-ink tracking-tight">
+            <span className="text-base font-bold text-ink tracking-tight">
               Krowdr
             </span>
           </Link>
@@ -118,11 +128,11 @@ export default function DashboardLayout({
         <div className="px-4 py-4 border-t border-border">
           <div className="flex items-center gap-2.5">
             <div className="size-7 rounded-full bg-[#3f5870] flex items-center justify-center flex-shrink-0">
-              <span className="text-paper text-[11px] font-bold">JE</span>
+              <span className="text-paper text-[11px] font-bold">{initials || "JE"}</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-ink truncate">John Everett</p>
-              <p className="text-[11px] text-[#625d58] truncate">Admin</p>
+              <p className="text-xs font-medium text-ink truncate">{displayName}</p>
+              <p className="text-[11px] text-[#625d58] truncate">{session?.role || "Admin"}</p>
             </div>
           </div>
         </div>
@@ -145,7 +155,10 @@ export default function DashboardLayout({
               <Plus className="size-3" />
               New Post
             </button>
-            <button className="relative size-8 flex items-center justify-center rounded-md hover:bg-panel text-[#625d58] hover:text-ink transition-colors">
+            <button
+              aria-label="Notifications"
+              className="relative size-8 flex items-center justify-center rounded-md hover:bg-panel text-[#625d58] hover:text-ink transition-colors"
+            >
               <Bell className="size-4" />
               <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-warm" />
             </button>

@@ -31,7 +31,7 @@ export default function PredictPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Input form */}
         <div className="bg-panel border border-border rounded-lg p-6">
-          <h2 className="font-serif text-base font-medium text-ink mb-5">Post details</h2>
+          <h2 className="text-sm font-semibold text-ink mb-5">Post details</h2>
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-[#625d58] mb-1.5 uppercase tracking-wider">Platform</label>
@@ -83,7 +83,7 @@ export default function PredictPage() {
           {submitted ? (
             <div className="space-y-4">
               <div className="bg-panel border border-border rounded-lg p-6">
-                <h2 className="font-serif text-base font-medium text-ink mb-5">
+                <h2 className="text-sm font-semibold text-ink mb-5">
                   Predicted performance
                 </h2>
                 <div className="grid grid-cols-2 gap-3">
@@ -92,7 +92,7 @@ export default function PredictPage() {
                       <div className={`mb-2 ${color}`}>
                         <Icon className="size-4" />
                       </div>
-                      <p className="font-serif text-2xl font-medium text-ink">{value}</p>
+                      <p className="text-2xl font-medium text-ink">{value}</p>
                       <p className="text-xs text-[#625d58] mt-0.5">{label}</p>
                     </div>
                   ))}
@@ -112,7 +112,7 @@ export default function PredictPage() {
               <TrendingUp className="size-8 text-[#625d58] mb-3 opacity-40" />
               <p className="text-sm font-medium text-ink mb-1">No prediction yet</p>
               <p className="text-xs text-[#625d58]">
-                Fill in the post details and click "Run prediction" to see estimated performance.
+                Fill in the post details and click &quot;Run prediction&quot; to see estimated performance.
               </p>
             </div>
           )}

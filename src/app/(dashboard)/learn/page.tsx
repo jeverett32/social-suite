@@ -28,7 +28,7 @@ export default function LearnPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Engagement chart placeholder */}
         <div className="lg:col-span-2 bg-panel border border-border rounded-lg p-5">
-          <h2 className="font-serif text-base font-medium text-ink mb-1">Engagement over time</h2>
+          <h2 className="text-sm font-semibold text-ink mb-1">Engagement over time</h2>
           <p className="text-xs text-[#625d58] mb-4">Daily engagement rate across all platforms</p>
           <div className="h-48 rounded-md bg-gradient-to-br from-warm/5 via-shell to-[#3f5870]/5 border border-border flex items-end gap-1 px-4 pb-4">
             {[35, 52, 41, 67, 48, 72, 59, 84, 63, 78, 55, 91, 70, 88].map((h, i) => (
@@ -43,7 +43,7 @@ export default function LearnPage() {
 
         {/* Platform breakdown */}
         <div className="bg-panel border border-border rounded-lg p-5">
-          <h2 className="font-serif text-base font-medium text-ink mb-4">By platform</h2>
+          <h2 className="text-sm font-semibold text-ink mb-4">By platform</h2>
           <div className="space-y-3">
             {mockPlatformBreakdown.map((p) => (
               <div key={p.platformId}>
@@ -65,7 +65,7 @@ export default function LearnPage() {
 
       {/* Top posts table */}
       <div className="bg-panel border border-border rounded-lg p-5">
-        <h2 className="font-serif text-base font-medium text-ink mb-4">Top performing posts</h2>
+        <h2 className="text-sm font-semibold text-ink mb-4">Top performing posts</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
