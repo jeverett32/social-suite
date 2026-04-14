@@ -65,7 +65,7 @@ export function LoginClient() {
     setLoginStatus("Sending magic link...");
     const supabase = createSupabaseBrowserClient();
     const { error } = await supabase.auth.signInWithOtp({
-      email,
+      email: email.toLowerCase(),
       options: {
         emailRedirectTo,
         // Don't create new users from the Login tab.
@@ -74,8 +74,12 @@ export function LoginClient() {
     });
 
     if (error) {
+      const msg = error.message || "Could not send magic link.";
+      const looksLikeMissingUser = /not\s*found|user\s*not\s*found/i.test(msg);
       setLoginStatus(
-        "No account found for that email yet. Use Get Started to register, then check your email for the magic link."
+        looksLikeMissingUser
+          ? "No account found for that email yet. Use Get Started to register, then check your email for the magic link."
+          : `${msg}${typeof error.status === "number" ? ` (HTTP ${error.status})` : ""}`
       );
       return;
     }
@@ -102,7 +106,7 @@ export function LoginClient() {
     setRegisterStatus("Sending magic link...");
     const supabase = createSupabaseBrowserClient();
     const { error } = await supabase.auth.signInWithOtp({
-      email,
+      email: email.toLowerCase(),
       options: {
         emailRedirectTo,
         // Create the user if they don't exist yet.
@@ -118,7 +122,8 @@ export function LoginClient() {
     });
 
     if (error) {
-      setRegisterStatus("Could not send magic link. Please try again.");
+      const msg = error.message || "Could not send magic link.";
+      setRegisterStatus(`${msg}${typeof error.status === "number" ? ` (HTTP ${error.status})` : ""}`);
       return;
     }
 
