@@ -23,8 +23,8 @@ export default function LandingPage() {
             <a href="#teams">Who it is for</a>
           </div>
           <div className="nav-actions">
-            <Link className="button button-ghost" href="/login">Log In</Link>
-            <Link className="button button-solid" href="/login">Get Started</Link>
+            <Link className="button button-ghost" href="/login#login">Log In</Link>
+            <Link className="button button-solid" href="/login#register">Get Started</Link>
           </div>
         </div>
       </nav>
@@ -52,7 +52,7 @@ export default function LandingPage() {
                   Krowdr keeps campaign planning, copy, approvals, scheduling, and reporting in one working rhythm for brand teams, agencies, and content leads.
                 </p>
                 <div className="hero-actions hero-animate delay-3">
-                  <Link className="button button-solid" href="/login">Get Started</Link>
+                  <Link className="button button-solid" href="/login#register">Get Started</Link>
                   <Link className="button button-ghost" href="/features">Explore features</Link>
                 </div>
               </div>

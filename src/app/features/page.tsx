@@ -23,8 +23,8 @@ export default function FeaturesPage() {
             <a href="#workflow">How it works</a>
           </div>
           <div className="nav-actions">
-            <Link className="button button-ghost" href="/login">Log In</Link>
-            <Link className="button button-solid" href="/login">Get Started</Link>
+            <Link className="button button-ghost" href="/login#login">Log In</Link>
+            <Link className="button button-solid" href="/login#register">Get Started</Link>
           </div>
         </div>
       </nav>
@@ -39,7 +39,7 @@ export default function FeaturesPage() {
               </h1>
               <p className="hero-copy">Krowdr is designed to keep campaign planning, writing, approvals, scheduling, reporting, and team coordination close together. This page walks through the platform now, with room to layer in real product screenshots and videos once the app is live.</p>
               <div className="hero-actions">
-                <Link className="button button-solid" href="/login">Get Started</Link>
+                <Link className="button button-solid" href="/login#register">Get Started</Link>
                 <Link className="button button-ghost" href="/">Back to landing</Link>
               </div>
             </div>

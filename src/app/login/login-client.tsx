@@ -13,12 +13,21 @@ export function LoginClient() {
   const [registerStatus, setRegisterStatus] = useState("");
 
   useEffect(() => {
-    const hash = window.location.hash;
-    if (hash === "#register") setTab("register");
+    function syncTabFromHash() {
+      const hash = window.location.hash;
+      setTab(hash === "#register" ? "register" : "login");
+    }
 
+    syncTabFromHash();
+    window.addEventListener("hashchange", syncTabFromHash);
+    return () => window.removeEventListener("hashchange", syncTabFromHash);
+  }, []);
+
+  useEffect(() => {
     const shell = document.querySelector<HTMLElement>(".mka");
     if (!shell) return;
 
+    // Re-run reveals when tab swaps in new DOM.
     const reveals = shell.querySelectorAll<Element>(".reveal");
     const obs = new IntersectionObserver(
       (entries) =>
@@ -39,7 +48,7 @@ export function LoginClient() {
     });
 
     return () => obs.disconnect();
-  }, []);
+  }, [tab]);
 
   async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -133,10 +142,10 @@ export function LoginClient() {
             </Link>
           </div>
           <div className="nav-actions">
-            <Link className="button button-ghost" href="/features">
-              Features
+            <Link className="button button-ghost" href="/login#login">
+              Log In
             </Link>
-            <Link className="button button-solid" href="/login">
+            <Link className="button button-solid" href="/login#register">
               Get Started
             </Link>
           </div>
@@ -192,7 +201,7 @@ export function LoginClient() {
                 className={`tab-button${tab === "login" ? " is-active" : ""}`}
                 onClick={() => {
                   setTab("login");
-                  history.replaceState(null, "", "#login");
+                  window.location.hash = "login";
                 }}
                 type="button"
               >
@@ -202,7 +211,7 @@ export function LoginClient() {
                 className={`tab-button${tab === "register" ? " is-active" : ""}`}
                 onClick={() => {
                   setTab("register");
-                  history.replaceState(null, "", "#register");
+                  window.location.hash = "register";
                 }}
                 type="button"
               >
