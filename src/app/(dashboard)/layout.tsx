@@ -5,11 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { AccountSwitcher } from "@/components/shared/account-switcher";
-import {
-  clearDemoSessionCookie,
-  getDemoSessionClient,
-  getWorkspaceTimezoneClient,
-} from "@/lib/demo-session";
+import { getWorkspaceTimezoneClient } from "@/lib/demo-session";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard,
   BarChart3,
@@ -51,8 +48,9 @@ export default function DashboardLayout({
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [timeZone, setTimeZone] = useState(() => getWorkspaceTimezoneClient());
 
-  const session = getDemoSessionClient();
-  const displayName = session?.fullName || "John Everett";
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  const displayName = userEmail ? titleCase(userEmail.split("@")[0] || "") : "Account";
   const initials = displayName
     .split(" ")
     .filter(Boolean)
@@ -66,8 +64,24 @@ export default function DashboardLayout({
     setTimeZone(getWorkspaceTimezoneClient());
   }, [pathname]);
 
+  useEffect(() => {
+    const supabase = createSupabaseBrowserClient();
+    supabase.auth.getUser().then(({ data }) => {
+      setUserEmail(data.user?.email ?? null);
+    });
+  }, []);
+
+  function titleCase(value: string) {
+    return value
+      .split(/[\s._-]+/)
+      .filter(Boolean)
+      .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+      .join(" ");
+  }
+
   function handleLogout() {
-    clearDemoSessionCookie();
+    const supabase = createSupabaseBrowserClient();
+    void supabase.auth.signOut();
     setMobileNavOpen(false);
     router.push("/login");
   }
@@ -154,7 +168,7 @@ export default function DashboardLayout({
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-medium text-ink truncate">{displayName}</p>
-              <p className="text-[11px] text-[#625d58] truncate">{session?.role || "Admin"}</p>
+              <p className="text-[11px] text-[#625d58] truncate">{userEmail || ""}</p>
             </div>
           </div>
 

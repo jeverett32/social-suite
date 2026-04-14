@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/shared/page-header";
 import { PlatformBadge } from "@/components/shared/platform-badge";
-import { mockScheduledPosts } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { dateKeyInTimeZone, formatMonthYear, formatDayNumber } from "@/lib/datetime";
 import { getWorkspaceTimezoneClient } from "@/lib/demo-session";
@@ -322,7 +321,7 @@ function PostModal({
   post?: Post | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (post: Partial<Post>) => void;
+  onSave: (post: Partial<Post>) => void | Promise<void>;
 }) {
   const [content, setContent] = useState(post?.content || "");
   const [platform, setPlatform] = useState<PlatformId>(post?.platformId || "instagram");
@@ -340,7 +339,7 @@ function PostModal({
   ];
 
   const handleSave = () => {
-    onSave({
+    void onSave({
       ...post,
       content,
       platformId: platform,
@@ -551,10 +550,42 @@ export default function SchedulePage() {
   const timeZone = getWorkspaceTimezoneClient();
   const [view, setView] = useState<ViewMode>("calendar");
   const [filter, setFilter] = useState<FilterStatus>("all");
-  const [currentMonth, setCurrentMonth] = useState(new Date(Date.UTC(2026, 3, 1, 12))); // April 2026
-  const [posts, setPosts] = useState<Post[]>(mockScheduledPosts);
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const now = new Date();
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 12));
+  });
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      setLoadError(null);
+      try {
+        const res = await fetch("/api/scheduled-posts", { cache: "no-store" });
+        if (!res.ok) {
+          const body = (await res.json().catch(() => null)) as { error?: string } | null;
+          throw new Error(body?.error || `request_failed_${res.status}`);
+        }
+        const body = (await res.json()) as { posts: Post[] };
+        if (cancelled) return;
+        setPosts(body.posts || []);
+      } catch (e) {
+        if (cancelled) return;
+        setLoadError(e instanceof Error ? e.message : "Failed to load scheduled posts");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handlePostClick = (post: Post) => {
     setSelectedPost(post);
@@ -574,20 +605,33 @@ export default function SchedulePage() {
     });
   };
 
-  const handleSavePost = (postData: Partial<Post>) => {
+  const handleSavePost = async (postData: Partial<Post>) => {
     if (selectedPost) {
-      setPosts(posts.map((p) => (p.id === selectedPost.id ? { ...p, ...postData } as Post : p)));
-    } else {
-      const newPost: Post = {
-        id: `sp${Date.now()}`,
-        platformId: postData.platformId || "instagram",
-        content: postData.content || "",
-        format: postData.format || "text",
-        status: postData.status || "draft",
-        scheduledAt: postData.scheduledAt,
-      };
-      setPosts([...posts, newPost]);
+      // Optimistic update.
+      setPosts((prev) => prev.map((p) => (p.id === selectedPost.id ? ({ ...p, ...postData } as Post) : p)));
+
+      const res = await fetch("/api/scheduled-posts", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ...postData, id: selectedPost.id }),
+      });
+
+      if (res.ok) {
+        const body = (await res.json()) as { post: Post };
+        setPosts((prev) => prev.map((p) => (p.id === selectedPost.id ? body.post : p)));
+      }
+      return;
     }
+
+    const res = await fetch("/api/scheduled-posts", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(postData),
+    });
+
+    if (!res.ok) return;
+    const body = (await res.json()) as { post: Post };
+    setPosts((prev) => [...prev, body.post]);
   };
 
   const filters: { value: FilterStatus; label: string }[] = [
@@ -616,6 +660,13 @@ export default function SchedulePage() {
           </button>
         }
       />
+
+      {loading && (
+        <div className="mb-4 text-xs text-[#625d58]">Loading scheduled posts…</div>
+      )}
+      {loadError && (
+        <div className="mb-4 text-xs text-[#9e4d3b]">Could not load scheduled posts: {loadError}</div>
+      )}
 
       <div className="flex gap-6">
         <div className="flex-1">

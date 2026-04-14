@@ -2,22 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { setDemoSessionCookie } from "@/lib/demo-session";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { loginCSS } from "./login.styles";
 
 type Tab = "login" | "register";
 
-function titleCase(value: string) {
-  return value
-    .split(/[\s._-]+/)
-    .filter(Boolean)
-    .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
-    .join(" ");
-}
-
 export function LoginClient() {
-  const router = useRouter();
   const [tab, setTab] = useState<Tab>("login");
   const [loginStatus, setLoginStatus] = useState("");
   const [registerStatus, setRegisterStatus] = useState("");
@@ -51,37 +41,36 @@ export function LoginClient() {
     return () => obs.disconnect();
   }, []);
 
-  function handleLogin(e: React.FormEvent<HTMLFormElement>) {
+  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const email = (form.elements.namedItem("login-email") as HTMLInputElement).value.trim();
-    const password = (form.elements.namedItem("login-password") as HTMLInputElement).value.trim();
-    if (!email || !password) {
-      setLoginStatus("Enter an email and password to open the demo workspace.");
+    if (!email) {
+      setLoginStatus("Enter your work email to receive a magic link.");
       return;
     }
 
-    const isDemo = email.toLowerCase() === "demo@krowdr.com" && password === "krowdr-demo";
-    const localPart = email.split("@")[0] || "demo";
-    const fullName = isDemo ? "Jordan Lee" : titleCase(localPart);
+    const next = new URLSearchParams(window.location.search).get("next") || "/overview";
+    const emailRedirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
 
-    setDemoSessionCookie({
-      firstName: fullName.split(" ")[0] || "Demo",
-      fullName,
+    setLoginStatus("Sending magic link...");
+    const supabase = createSupabaseBrowserClient();
+    const { error } = await supabase.auth.signInWithOtp({
       email,
-      teamName: "Krowdr Demo Workspace",
-      role: "Social strategist",
-      mode: "login",
-      lastLoginAt: new Date().toISOString(),
+      options: {
+        emailRedirectTo,
+      },
     });
 
-    const next = new URLSearchParams(window.location.search).get("next");
+    if (error) {
+      setLoginStatus("Could not send magic link. Please try again.");
+      return;
+    }
 
-    setLoginStatus("Opening the demo dashboard...");
-    setTimeout(() => router.push(next || "/overview"), 280);
+    setLoginStatus("Check your email for a magic link to finish signing in.");
   }
 
-  function handleRegister(e: React.FormEvent<HTMLFormElement>) {
+  async function handleRegister(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const firstName = (form.elements.namedItem("first-name") as HTMLInputElement).value.trim();
@@ -94,20 +83,31 @@ export function LoginClient() {
       return;
     }
 
-    setDemoSessionCookie({
-      firstName,
-      fullName: firstName + " " + lastName,
+    const next = new URLSearchParams(window.location.search).get("next") || "/overview";
+    const emailRedirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+
+    setRegisterStatus("Sending magic link...");
+    const supabase = createSupabaseBrowserClient();
+    const { error } = await supabase.auth.signInWithOtp({
       email,
-      teamName,
-      role,
-      mode: "register",
-      lastLoginAt: new Date().toISOString(),
+      options: {
+        emailRedirectTo,
+        data: {
+          // Will be available on the auth user as metadata; we can use this later for onboarding.
+          first_name: firstName,
+          last_name: lastName,
+          team_name: teamName,
+          role,
+        },
+      },
     });
 
-    const next = new URLSearchParams(window.location.search).get("next");
+    if (error) {
+      setRegisterStatus("Could not send magic link. Please try again.");
+      return;
+    }
 
-    setRegisterStatus("Building your demo workspace...");
-    setTimeout(() => router.push(next || "/overview"), 280);
+    setRegisterStatus("Check your email for a magic link to finish signing up.");
   }
 
   return (
@@ -211,30 +211,24 @@ export function LoginClient() {
                     <span className="field-label">Work email</span>
                     <input type="email" name="login-email" placeholder="you@company.com" />
                   </label>
-                  <label className="field">
-                    <span className="field-label">Password</span>
-                    <input type="password" name="login-password" placeholder="Enter your password" />
-                  </label>
                 </div>
                 <div className="demo-note">
                   <div className="meta">
                     <div>
-                      <strong>Demo credentials</strong>
-                      <p>Email: demo@krowdr.com</p>
-                      <p>Password: krowdr-demo</p>
+                      <strong>Magic link</strong>
+                      <p>We will email you a sign-in link.</p>
                     </div>
                     <div>
                       <strong>Next step</strong>
                       <p>
-                        Use these credentials or any work email to enter the demo dashboard and explore
-                        the frontend shell.
+                        Click the link in your inbox to open the dashboard.
                       </p>
                     </div>
                   </div>
                 </div>
                 <div className="form-actions">
                   <button className="button button-solid" type="submit">
-                    Log In
+                    Send magic link
                   </button>
                   <Link className="button button-ghost" href="/features">
                     Review features first
