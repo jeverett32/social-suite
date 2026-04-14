@@ -113,7 +113,11 @@ function MembersList({ members }: { members: TeamMember[] }) {
               </td>
               <td className="px-4 py-3 text-xs text-[#625d58]">{member.lastActive}</td>
               <td className="px-4 py-3">
-                <button className="p-1.5 hover:bg-shell rounded transition-colors text-[#625d58]">
+                <button
+                  type="button"
+                  aria-label={`Member actions for ${member.name}`}
+                  className="p-1.5 hover:bg-shell rounded transition-colors text-[#625d58]"
+                >
                   <MoreHorizontal className="size-4" />
                 </button>
               </td>

@@ -79,18 +79,26 @@ function ConnectedAccountsList({ accounts }: { accounts: ConnectedAccount[] }) {
                     <StatusIcon className="size-3" />
                     {status.label}
                   </span>
-                  {account.status === "connected" && (
-                    <button className="p-2 hover:bg-panel rounded transition-colors text-[#625d58]">
-                      <RefreshCw className="size-4" />
-                    </button>
-                  )}
-                  <button className="p-2 hover:bg-panel rounded transition-colors text-[#625d58] hover:text-[#9e4d3b]">
-                    <Unlink className="size-4" />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+                   {account.status === "connected" && (
+                     <button
+                       type="button"
+                       aria-label={`Sync ${account.username}`}
+                       className="p-2 hover:bg-panel rounded transition-colors text-[#625d58]"
+                     >
+                       <RefreshCw className="size-4" />
+                     </button>
+                   )}
+                   <button
+                     type="button"
+                     aria-label={`Disconnect ${account.username}`}
+                     className="p-2 hover:bg-panel rounded transition-colors text-[#625d58] hover:text-[#9e4d3b]"
+                   >
+                     <Unlink className="size-4" />
+                   </button>
+                 </div>
+               </div>
+             );
+           })}
         </div>
       )}
     </div>
@@ -162,6 +170,8 @@ function ApiKeysSection() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowKey(!showKey)}
+              type="button"
+              aria-label={showKey ? "Hide API key" : "Show API key"}
               className="p-2 hover:bg-panel rounded transition-colors text-[#625d58]"
             >
               {showKey ? <Key className="size-4" /> : <ExternalLink className="size-4" />}
