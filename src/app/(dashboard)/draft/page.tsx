@@ -146,6 +146,7 @@ export default function DraftPage() {
                     </span>
                     <button
                       onClick={() => handleCopy(v.id, v.content)}
+                      aria-label={`Copy ${v.label}`}
                       className="p-1.5 rounded hover:bg-shell transition-colors text-[#625d58] hover:text-ink"
                     >
                       {copied === v.id ? <Check className="size-3.5 text-[#536443]" /> : <Copy className="size-3.5" />}

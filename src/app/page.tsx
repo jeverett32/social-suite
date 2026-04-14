@@ -31,6 +31,16 @@ export default function LandingPage() {
 
         <main id="top">
           <section className="hero-stage">
+            <video
+              className="hero-video"
+              src="/second.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+              aria-hidden="true"
+            />
             <div className="hero-overlay page-shell">
               <div className="hero-stack">
               <div className="hero-copy">
@@ -98,7 +108,18 @@ export default function LandingPage() {
           </div>
           <div className="workflow-grid">
             <aside className="studio-rail reveal">
-              <div className="studio-frame" />
+              <div className="studio-frame" aria-hidden="true">
+                <video
+                  className="studio-video"
+                  src="/first.mp4"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="metadata"
+                  aria-hidden="true"
+                />
+              </div>
               <div className="studio-note">
                 <p>The day-to-day pace stays visible even when the calendar gets crowded.</p>
                 <p>Enough structure to keep the work moving. Enough room to keep it feeling authored.</p>
@@ -220,6 +241,12 @@ const landingCSS = `
     position: relative; min-height: 92svh; color: #ffffff; overflow: clip;
     background: linear-gradient(160deg, #c8bfb4 0%, #b5a99c 50%, #a8977f 100%);
   }
+  .mk .hero-video {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover;
+    transform: translateY(var(--hero-shift));
+    filter: saturate(0.96) contrast(1.02);
+  }
   .mk .hero-stage::after {
     content: ""; position: absolute; inset: 0; background: rgba(16,16,16,0.32); z-index: 1; pointer-events: none;
   }
@@ -267,7 +294,18 @@ const landingCSS = `
 
   .mk .workflow-grid { display: grid; grid-template-columns: minmax(320px,0.75fr) minmax(0,1fr); gap: 56px; align-items: start; }
   .mk .studio-rail { position: sticky; top: 108px; }
-  .mk .studio-frame { overflow: hidden; aspect-ratio: 9/13.5; background: #e8e0d7; }
+  .mk .studio-frame {
+    overflow: hidden;
+    aspect-ratio: 9/13.5;
+    background: #e8e0d7;
+    border-radius: 14px;
+    border: 1px solid rgba(17,17,17,0.12);
+    box-shadow: 0 22px 50px rgba(17,17,17,0.14);
+  }
+  .mk .studio-video {
+    width: 100%; height: 100%; object-fit: cover;
+    transform: translateY(var(--studio-shift));
+  }
   .mk .studio-note { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding-top: 18px; margin-top: 18px; border-top: 1px solid var(--line); }
   .mk .studio-note p { margin: 0; color: var(--muted); line-height: 1.7; }
   .mk .workflow-copy { max-width: 620px; margin: 0 0 26px; font-size: 18px; line-height: 1.75; color: var(--muted); }

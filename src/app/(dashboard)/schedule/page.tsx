@@ -120,10 +120,20 @@ function CalendarView({
       <div className="flex items-center justify-between px-5 py-4 border-b border-border">
         <h2 className="text-sm font-semibold text-ink">{monthName}</h2>
         <div className="flex gap-1">
-          <button onClick={() => onMonthChange(-1)} className="p-1.5 hover:bg-shell rounded transition-colors">
+          <button
+            type="button"
+            aria-label="Previous month"
+            onClick={() => onMonthChange(-1)}
+            className="p-1.5 hover:bg-shell rounded transition-colors"
+          >
             <ChevronLeft className="size-4 text-[#625d58]" />
           </button>
-          <button onClick={() => onMonthChange(1)} className="p-1.5 hover:bg-shell rounded transition-colors">
+          <button
+            type="button"
+            aria-label="Next month"
+            onClick={() => onMonthChange(1)}
+            className="p-1.5 hover:bg-shell rounded transition-colors"
+          >
             <ChevronRight className="size-4 text-[#625d58]" />
           </button>
         </div>
@@ -190,7 +200,11 @@ function CalendarView({
                 )}
               </div>
 
-              <button className="absolute bottom-1 right-1 size-5 rounded bg-warm/10 hover:bg-warm/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                type="button"
+                aria-label="Add post"
+                className="absolute bottom-1 right-1 size-5 rounded bg-warm/10 hover:bg-warm/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              >
                 <Plus className="size-3 text-warm" />
               </button>
             </div>
