@@ -59,11 +59,15 @@ export function LoginClient() {
       email,
       options: {
         emailRedirectTo,
+        // Don't create new users from the Login tab.
+        shouldCreateUser: false,
       },
     });
 
     if (error) {
-      setLoginStatus("Could not send magic link. Please try again.");
+      setLoginStatus(
+        "No account found for that email yet. Use Get Started to register, then check your email for the magic link."
+      );
       return;
     }
 
@@ -92,6 +96,8 @@ export function LoginClient() {
       email,
       options: {
         emailRedirectTo,
+        // Create the user if they don't exist yet.
+        shouldCreateUser: true,
         data: {
           // Will be available on the auth user as metadata; we can use this later for onboarding.
           first_name: firstName,
