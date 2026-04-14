@@ -54,37 +54,28 @@ export function LoginClient() {
     e.preventDefault();
     const form = e.currentTarget;
     const email = (form.elements.namedItem("login-email") as HTMLInputElement).value.trim();
-    if (!email) {
-      setLoginStatus("Enter your work email to receive a magic link.");
+    const password = (form.elements.namedItem("login-password") as HTMLInputElement | null)?.value.trim() || "";
+    if (!email || !password) {
+      setLoginStatus("Enter your email and password.");
       return;
     }
 
     const next = new URLSearchParams(window.location.search).get("next") || "/overview";
-    const emailRedirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
 
-    setLoginStatus("Sending magic link...");
+    setLoginStatus("Signing you in...");
     const supabase = createSupabaseBrowserClient();
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabase.auth.signInWithPassword({
       email: email.toLowerCase(),
-      options: {
-        emailRedirectTo,
-        // Don't create new users from the Login tab.
-        shouldCreateUser: false,
-      },
+      password,
     });
 
     if (error) {
-      const msg = error.message || "Could not send magic link.";
-      const looksLikeMissingUser = /not\s*found|user\s*not\s*found/i.test(msg);
-      setLoginStatus(
-        looksLikeMissingUser
-          ? "No account found for that email yet. Use Get Started to register, then check your email for the magic link."
-          : `${msg}${typeof error.status === "number" ? ` (HTTP ${error.status})` : ""}`
-      );
+      const msg = error.message || "Could not sign in.";
+      setLoginStatus(`${msg}${typeof error.status === "number" ? ` (HTTP ${error.status})` : ""}`);
       return;
     }
 
-    setLoginStatus("Check your email for a magic link to finish signing in.");
+    window.location.assign(next);
   }
 
   async function handleRegister(e: React.FormEvent<HTMLFormElement>) {
@@ -93,24 +84,35 @@ export function LoginClient() {
     const firstName = (form.elements.namedItem("first-name") as HTMLInputElement).value.trim();
     const lastName = (form.elements.namedItem("last-name") as HTMLInputElement).value.trim();
     const email = (form.elements.namedItem("register-email") as HTMLInputElement).value.trim();
+    const password = (form.elements.namedItem("register-password") as HTMLInputElement | null)?.value.trim() || "";
+    const confirmPassword = (form.elements.namedItem("register-password-confirm") as HTMLInputElement | null)?.value.trim() || "";
     const teamName = (form.elements.namedItem("team-name") as HTMLInputElement).value.trim();
     const role = (form.elements.namedItem("role") as HTMLSelectElement).value.trim();
-    if (!firstName || !lastName || !email || !teamName || !role) {
-      setRegisterStatus("Fill in the full form to create the demo workspace.");
+    if (!firstName || !lastName || !email || !password || !confirmPassword || !teamName || !role) {
+      setRegisterStatus("Fill in the full form to create your account.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setRegisterStatus("Password must be at least 8 characters.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setRegisterStatus("Passwords do not match.");
       return;
     }
 
     const next = new URLSearchParams(window.location.search).get("next") || "/overview";
     const emailRedirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
 
-    setRegisterStatus("Sending magic link...");
+    setRegisterStatus("Creating your account...");
     const supabase = createSupabaseBrowserClient();
-    const { error } = await supabase.auth.signInWithOtp({
+    const { data, error } = await supabase.auth.signUp({
       email: email.toLowerCase(),
+      password,
       options: {
         emailRedirectTo,
-        // Create the user if they don't exist yet.
-        shouldCreateUser: true,
         data: {
           // Will be available on the auth user as metadata; we can use this later for onboarding.
           first_name: firstName,
@@ -122,12 +124,17 @@ export function LoginClient() {
     });
 
     if (error) {
-      const msg = error.message || "Could not send magic link.";
+      const msg = error.message || "Could not create account.";
       setRegisterStatus(`${msg}${typeof error.status === "number" ? ` (HTTP ${error.status})` : ""}`);
       return;
     }
 
-    setRegisterStatus("Check your email for a magic link to finish signing up.");
+    if (data.session) {
+      window.location.assign(next);
+      return;
+    }
+
+    setRegisterStatus("Account created. Check your email to confirm, then log in.");
   }
 
   return (
@@ -231,24 +238,28 @@ export function LoginClient() {
                     <span className="field-label">Work email</span>
                     <input type="email" name="login-email" placeholder="you@company.com" />
                   </label>
+                  <label className="field">
+                    <span className="field-label">Password</span>
+                    <input type="password" name="login-password" placeholder="Enter your password" autoComplete="current-password" />
+                  </label>
                 </div>
                 <div className="demo-note">
                   <div className="meta">
                     <div>
-                      <strong>Magic link</strong>
-                      <p>We will email you a sign-in link.</p>
+                      <strong>Email and password</strong>
+                      <p>Sign in with the credentials you registered.</p>
                     </div>
                     <div>
                       <strong>Next step</strong>
                       <p>
-                        Click the link in your inbox to open the dashboard.
+                        If you do not have an account yet, use Get Started.
                       </p>
                     </div>
                   </div>
                 </div>
                 <div className="form-actions">
                   <button className="button button-solid" type="submit">
-                    Send magic link
+                    Log In
                   </button>
                   <Link className="button button-ghost" href="/features">
                     Review features first
@@ -276,6 +287,15 @@ export function LoginClient() {
                     <input type="email" name="register-email" placeholder="you@company.com" />
                   </label>
                   <label className="field">
+                    <span className="field-label">Password</span>
+                    <input type="password" name="register-password" placeholder="Create a password" autoComplete="new-password" />
+                    <span className="field-help">Minimum 8 characters.</span>
+                  </label>
+                  <label className="field">
+                    <span className="field-label">Confirm password</span>
+                    <input type="password" name="register-password-confirm" placeholder="Re-enter your password" autoComplete="new-password" />
+                  </label>
+                  <label className="field">
                     <span className="field-label">Team name</span>
                     <input type="text" name="team-name" placeholder="North Studio Social" />
                   </label>
@@ -294,7 +314,7 @@ export function LoginClient() {
                 </div>
                 <div className="form-actions">
                   <button className="button button-solid" type="submit">
-                    Create demo workspace
+                    Create account
                   </button>
                   <Link className="button button-ghost" href="/">
                     Back to landing
