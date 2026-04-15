@@ -178,6 +178,7 @@ function KeywordsSection({
               <p className="text-xs text-[#625d58]">{kw.mentions.toLocaleString()} mentions</p>
             </div>
             <button
+              type="button"
               onClick={() => handleToggle(kw.keyword)}
               aria-label={tracked.has(kw.keyword) ? `Disable alerts for ${kw.keyword}` : `Enable alerts for ${kw.keyword}`}
               className={cn(

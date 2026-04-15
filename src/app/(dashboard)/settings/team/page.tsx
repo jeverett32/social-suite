@@ -109,7 +109,7 @@ function MembersList({ members }: { members: TeamMember[] }) {
                 <RoleBadge role={member.role} />
               </td>
               <td className="px-4 py-3 text-xs text-[#625d58]">
-                {new Date(member.joinedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                {new Date(member.joinedAt + "T12:00:00Z").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
               </td>
               <td className="px-4 py-3 text-xs text-[#625d58]">{member.lastActive}</td>
               <td className="px-4 py-3">

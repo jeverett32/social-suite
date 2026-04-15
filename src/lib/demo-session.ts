@@ -1,5 +1,7 @@
 import { DEMO_SESSION_COOKIE, DEMO_TIMEZONE_COOKIE } from "@/lib/demo-constants";
 
+export const WORKSPACE_TIMEZONE_CHANGED_EVENT = "krowdr:timezone-changed";
+
 export type DemoSession = {
   firstName: string;
   fullName: string;
@@ -55,6 +57,25 @@ export function clearDemoSessionCookie() {
   document.cookie = `${DEMO_SESSION_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`;
 }
 
+export function clearWorkspaceTimezoneClient() {
+  if (typeof document === "undefined") return;
+  document.cookie = `${DEMO_TIMEZONE_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`;
+
+  // Let client layouts/widgets react without requiring a full reload.
+  if (typeof window !== "undefined") {
+    try {
+      window.dispatchEvent(new CustomEvent(WORKSPACE_TIMEZONE_CHANGED_EVENT));
+    } catch {
+      window.dispatchEvent(new Event(WORKSPACE_TIMEZONE_CHANGED_EVENT));
+    }
+  }
+}
+
+export function clearDemoWorkspaceClient() {
+  clearDemoSessionCookie();
+  clearWorkspaceTimezoneClient();
+}
+
 export function getDemoSessionClient(): DemoSession | null {
   const raw = getCookie(DEMO_SESSION_COOKIE);
   if (!raw) return null;
@@ -67,6 +88,15 @@ export function getDemoSessionClient(): DemoSession | null {
 
 export function setWorkspaceTimezoneClient(tz: string) {
   setCookie(DEMO_TIMEZONE_COOKIE, encodeURIComponent(tz), 60 * 60 * 24 * 365);
+
+  // Let client layouts/widgets react without requiring a full reload.
+  if (typeof window !== "undefined") {
+    try {
+      window.dispatchEvent(new CustomEvent(WORKSPACE_TIMEZONE_CHANGED_EVENT, { detail: tz }));
+    } catch {
+      window.dispatchEvent(new Event(WORKSPACE_TIMEZONE_CHANGED_EVENT));
+    }
+  }
 }
 
 export function getWorkspaceTimezoneClient(): string {

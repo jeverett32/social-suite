@@ -210,6 +210,8 @@ export default function PlanPage() {
           </h2>
           <div className="flex gap-1">
             <button
+              type="button"
+              aria-label="Previous week"
               onClick={() => handleNavigate(-1)}
               aria-label="Previous week"
               className="px-2.5 py-1 text-xs border border-border rounded hover:bg-shell transition-colors"
@@ -217,6 +219,8 @@ export default function PlanPage() {
               <ChevronLeft className="size-3.5 text-[#625d58]" />
             </button>
             <button
+              type="button"
+              aria-label="Next week"
               onClick={() => handleNavigate(1)}
               aria-label="Next week"
               className="px-2.5 py-1 text-xs border border-border rounded hover:bg-shell transition-colors"
@@ -309,6 +313,7 @@ export default function PlanPage() {
         <PostModal
           post={selectedPost}
           open={true}
+          timeZone={timeZone}
           onOpenChange={(open) => {
             if (!open) setSelectedPost(null);
           }}

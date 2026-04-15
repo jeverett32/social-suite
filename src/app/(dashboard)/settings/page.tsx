@@ -4,10 +4,44 @@ import { useState } from "react";
 import { CheckCircle, Save } from "lucide-react";
 import { getWorkspaceTimezoneClient, setWorkspaceTimezoneClient } from "@/lib/demo-session";
 
+function Switch({
+  checked,
+  onCheckedChange,
+  label,
+}: {
+  checked: boolean;
+  onCheckedChange: (next: boolean) => void;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      onClick={() => onCheckedChange(!checked)}
+      className={
+        "relative w-11 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-warm focus:ring-offset-2 focus:ring-offset-panel " +
+        (checked ? "bg-warm" : "bg-[#625d58]/30")
+      }
+    >
+      <span
+        className={
+          "absolute left-0.5 top-0.5 size-5 rounded-full transition-transform " +
+          (checked ? "bg-paper translate-x-5" : "bg-[#625d58] translate-x-0")
+        }
+      />
+    </button>
+  );
+}
+
 function GeneralSettings() {
   const [orgName, setOrgName] = useState("Acme Marketing");
   const [timezone, setTimezone] = useState(() => getWorkspaceTimezoneClient() || "America/New_York");
   const [saved, setSaved] = useState(false);
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [weeklyDigest, setWeeklyDigest] = useState(false);
+  const [failedPostAlerts, setFailedPostAlerts] = useState(true);
 
   const handleSave = () => {
     setWorkspaceTimezoneClient(timezone);
@@ -59,27 +93,29 @@ function GeneralSettings() {
               <p className="text-sm font-medium text-ink">Email notifications</p>
               <p className="text-xs text-[#625d58]">Receive email updates about your account</p>
             </div>
-            <button className="relative w-11 h-6 bg-warm rounded-full transition-colors">
-              <span className="absolute right-0.5 top-0.5 size-5 rounded-full bg-paper transition-transform translate-x-5" />
-            </button>
+            <Switch
+              label="Email notifications"
+              checked={emailNotifications}
+              onCheckedChange={setEmailNotifications}
+            />
           </div>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-ink">Weekly digest</p>
               <p className="text-xs text-[#625d58]">Get a weekly summary of performance</p>
             </div>
-            <button className="relative w-11 h-6 bg-[#625d58]/30 rounded-full transition-colors">
-              <span className="absolute left-0.5 top-0.5 size-5 rounded-full bg-[#625d58] transition-transform" />
-            </button>
+            <Switch label="Weekly digest" checked={weeklyDigest} onCheckedChange={setWeeklyDigest} />
           </div>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-ink">Failed post alerts</p>
               <p className="text-xs text-[#625d58]">Get notified immediately when a post fails</p>
             </div>
-            <button className="relative w-11 h-6 bg-warm rounded-full transition-colors">
-              <span className="absolute right-0.5 top-0.5 size-5 rounded-full bg-paper transition-transform translate-x-5" />
-            </button>
+            <Switch
+              label="Failed post alerts"
+              checked={failedPostAlerts}
+              onCheckedChange={setFailedPostAlerts}
+            />
           </div>
         </div>
       </div>

@@ -2,24 +2,12 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 import { createServerClient } from "@supabase/ssr";
-
-const PROTECTED_PREFIXES = [
-  "/overview",
-  "/learn",
-  "/plan",
-  "/predict",
-  "/draft",
-  "/inbox",
-  "/schedule",
-  "/listen",
-  "/voice",
-  "/settings",
-];
+import { DEMO_PROTECTED_PREFIXES } from "./src/lib/demo-constants";
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  const isProtected = PROTECTED_PREFIXES.some(
+  const isProtected = DEMO_PROTECTED_PREFIXES.some(
     (p) => pathname === p || pathname.startsWith(p + "/")
   );
   if (!isProtected) return NextResponse.next();
@@ -38,17 +26,17 @@ export function middleware(req: NextRequest) {
       getAll() {
         return req.cookies.getAll();
       },
-      setAll(cookiesToSet) {
+      setAll(cookiesToSet: Array<{ name: string; value: string; options: Record<string, unknown> }>) {
         for (const { name, value, options } of cookiesToSet) {
-          res.cookies.set(name, value, options);
+          res.cookies.set(name, value, options as unknown as Parameters<typeof res.cookies.set>[2]);
         }
       },
     },
   });
 
   // Ensure auth cookies are refreshed, and gate protected routes.
-  return supabase.auth.getUser().then(({ data, error }) => {
-    if (!error && data.user) return res;
+  return supabase.auth.getUser().then((result: { data: { user: unknown | null }; error: unknown | null }) => {
+    if (!result.error && result.data.user) return res;
 
     const redirect = req.nextUrl.clone();
     redirect.pathname = "/login";

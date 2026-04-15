@@ -219,12 +219,12 @@ function CalendarView({
 
               <button
                 type="button"
-                aria-label="Add post"
-                className="absolute bottom-1 right-1 size-5 rounded bg-warm/10 hover:bg-warm/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                aria-label={`Add post on ${dateStr}`}
                 onClick={(e) => {
                   e.stopPropagation();
                   onDayClick(day);
                 }}
+                className="absolute bottom-1 right-1 size-5 rounded bg-warm/10 hover:bg-warm/20 flex items-center justify-center opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 transition-opacity"
               >
                 <Plus className="size-3 text-warm" />
               </button>

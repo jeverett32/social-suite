@@ -148,6 +148,8 @@ export default function DraftPage() {
                       Authenticity {v.slopScore}/100
                     </span>
                     <button
+                      type="button"
+                      aria-label={`Copy ${v.label}`}
                       onClick={() => handleCopy(v.id, v.content)}
                       aria-label={`Copy ${v.label}`}
                       className="p-1.5 rounded hover:bg-shell transition-colors text-[#625d58] hover:text-ink"

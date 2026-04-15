@@ -64,7 +64,7 @@ function ConnectedAccountsList({
                   <div>
                     <p className="text-sm font-medium text-ink">{account.username}</p>
                     <p className="text-[10px] text-[#625d58]">
-                      Connected {new Date(account.connectedAt).toLocaleDateString()}
+                      Connected {new Date(account.connectedAt + "T12:00:00Z").toLocaleDateString()}
                       {account.lastSync && ` · Last sync ${account.lastSync}`}
                     </p>
                   </div>
@@ -74,27 +74,27 @@ function ConnectedAccountsList({
                     <StatusIcon className="size-3" />
                     {status.label}
                   </span>
-                   {account.status === "connected" && (
-                     <button
-                       type="button"
-                       aria-label={`Sync ${account.username}`}
-                       className="p-2 hover:bg-panel rounded transition-colors text-[#625d58]"
-                     >
-                       <RefreshCw className="size-4" />
-                     </button>
-                   )}
-                   <button
-                     type="button"
-                     aria-label={`Disconnect ${account.username}`}
-                     className="p-2 hover:bg-panel rounded transition-colors text-[#625d58] hover:text-[#9e4d3b]"
-                      onClick={() => void onDisconnect(account.id)}
+                  {account.status === "connected" && (
+                    <button
+                      type="button"
+                      aria-label={`Sync ${account.username}`}
+                      className="p-2 hover:bg-panel rounded transition-colors text-[#625d58]"
                     >
-                      <Unlink className="size-4" />
+                      <RefreshCw className="size-4" />
                     </button>
-                 </div>
-               </div>
-             );
-           })}
+                  )}
+                  <button
+                    type="button"
+                    aria-label={`Disconnect ${account.username}`}
+                    className="p-2 hover:bg-panel rounded transition-colors text-[#625d58] hover:text-[#9e4d3b]"
+                    onClick={() => void onDisconnect(account.id)}
+                  >
+                    <Unlink className="size-4" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -170,8 +170,8 @@ function ApiKeysSection() {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setShowKey(!showKey)}
               type="button"
+              onClick={() => setShowKey(!showKey)}
               aria-label={showKey ? "Hide API key" : "Show API key"}
               className="p-2 hover:bg-panel rounded transition-colors text-[#625d58]"
             >

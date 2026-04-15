@@ -3,10 +3,32 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { DEMO_PROTECTED_PREFIXES } from "@/lib/demo-constants";
 import { loginCSS } from "./login.styles";
 
 type Tab = "login" | "register";
 
+function sanitizeNextPath(raw: string | null): string {
+  const fallback = "/overview";
+  if (!raw) return fallback;
+  const next = raw.trim();
+  if (!next) return fallback;
+
+  // Only allow same-origin in-app absolute paths (not scheme-relative //example.com).
+  if (!next.startsWith("/")) return fallback;
+  if (next.startsWith("//")) return fallback;
+  if (/\s/.test(next)) return fallback;
+
+  const url = new URL(next, window.location.origin);
+  if (url.origin !== window.location.origin) return fallback;
+
+  const ok = DEMO_PROTECTED_PREFIXES.some(
+    (p) => url.pathname === p || url.pathname.startsWith(p + "/")
+  );
+  if (!ok) return fallback;
+
+  return url.pathname + url.search + url.hash;
+}
 export function LoginClient() {
   const [tab, setTab] = useState<Tab>("login");
   const [loginStatus, setLoginStatus] = useState("");
@@ -60,7 +82,7 @@ export function LoginClient() {
       return;
     }
 
-    const next = new URLSearchParams(window.location.search).get("next") || "/overview";
+    const next = sanitizeNextPath(new URLSearchParams(window.location.search).get("next"));
 
     setLoginStatus("Signing you in...");
     const supabase = createSupabaseBrowserClient();
@@ -103,7 +125,7 @@ export function LoginClient() {
       return;
     }
 
-    const next = new URLSearchParams(window.location.search).get("next") || "/overview";
+    const next = sanitizeNextPath(new URLSearchParams(window.location.search).get("next"));
     const emailRedirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
 
     setRegisterStatus("Creating your account...");

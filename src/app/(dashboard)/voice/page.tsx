@@ -6,19 +6,12 @@ import { PlatformBadge } from "@/components/shared/platform-badge";
 import type { PlatformId } from "@/types/platform";
 import { cn } from "@/lib/utils";
 import {
-  Mic,
-  Volume2,
-  VolumeX,
   Sparkles,
   RefreshCw,
   Plus,
   Trash2,
   Edit,
-  ChevronRight,
   AlertCircle,
-  CheckCircle,
-  Copy,
-  Eye,
 } from "lucide-react";
 
 type Tone = "professional" | "conversational" | "authoritative" | "playful" | "inspirational" | "educational";
@@ -144,6 +137,7 @@ function VocabularyManager({
           className="flex-1 border border-border rounded-md px-3 py-2 text-sm bg-paper text-ink placeholder:text-[#625d58] focus:outline-none focus:ring-1 focus:ring-warm"
         />
         <button
+          type="button"
           onClick={addWord}
           aria-label="Add vocabulary word"
           className="px-3 py-2 bg-warm text-paper rounded-md text-sm font-medium hover:bg-warm/90 transition-colors"
@@ -159,6 +153,7 @@ function VocabularyManager({
           >
             {word}
             <button
+              type="button"
               onClick={() => removeWord(word)}
               aria-label={`Remove vocabulary word: ${word}`}
               className="text-[#625d58] hover:text-[#9e4d3b]"
@@ -205,6 +200,7 @@ function BannedPhrasesManager({
           className="flex-1 border border-border rounded-md px-3 py-2 text-sm bg-paper text-ink placeholder:text-[#625d58] focus:outline-none focus:ring-1 focus:ring-warm"
         />
         <button
+          type="button"
           onClick={addPhrase}
           aria-label="Add banned phrase"
           className="px-3 py-2 bg-warm text-paper rounded-md text-sm font-medium hover:bg-warm/90 transition-colors"
@@ -220,6 +216,7 @@ function BannedPhrasesManager({
           >
             {phrase}
             <button
+              type="button"
               onClick={() => removePhrase(phrase)}
               aria-label={`Remove banned phrase: ${phrase}`}
               className="hover:text-ink"
@@ -269,6 +266,7 @@ function ExamplePostsSection({
                   {post.rating}% match
                 </span>
                 <button
+                  type="button"
                   onClick={() => onRemove(post.id)}
                   aria-label="Remove example post"
                   className="text-[#625d58] hover:text-[#9e4d3b]"
