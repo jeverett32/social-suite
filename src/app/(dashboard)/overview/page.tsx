@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { PlatformBadge } from "@/components/shared/platform-badge";
 import { mockKpis } from "@/lib/mock-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getOrCreateDefaultWorkspaceId } from "@/lib/workspace/server";
 import { ArrowRight, CheckCircle2, Clock, Zap } from "lucide-react";
 import Link from "next/link";
 import type { Post, PostFormat, PostStatus } from "@/types/post";
@@ -58,10 +59,11 @@ export default async function OverviewPage() {
     const supabase = await createSupabaseServerClient();
     const { data: userData } = await supabase.auth.getUser();
     if (userData.user) {
+      const workspaceId = await getOrCreateDefaultWorkspaceId({ supabase, userId: userData.user.id });
       const { data } = await supabase
         .from("scheduled_posts")
         .select("id, platform_id, content, format, status, scheduled_at, published_at, media_url")
-        .eq("user_id", userData.user.id)
+        .eq("workspace_id", workspaceId)
         .eq("status", "scheduled")
         .not("scheduled_at", "is", null)
         .gte("scheduled_at", new Date().toISOString())
