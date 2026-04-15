@@ -1,10 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/shared/page-header";
 import { TrendingUp, Users, MousePointerClick, Eye } from "lucide-react";
+import type { PlatformId } from "@/types/platform";
+import { PREDICT_SEED_KEY } from "@/lib/seed-keys";
 
-const platforms = ["Instagram", "TikTok", "LinkedIn", "Facebook", "X"];
+const platformOptions: { id: PlatformId; label: string }[] = [
+  { id: "instagram", label: "Instagram" },
+  { id: "tiktok", label: "TikTok" },
+  { id: "linkedin", label: "LinkedIn" },
+  { id: "facebook", label: "Facebook" },
+  { id: "x", label: "X" },
+];
 const postTypes = ["Image", "Video / Reel", "Carousel", "Text post", "Story"];
 const timeSlots = [
   "6:00 AM", "7:00 AM", "8:00 AM", "9:00 AM", "12:00 PM",
@@ -19,7 +28,46 @@ const mockResults = [
 ];
 
 export default function PredictPage() {
+  return (
+    <Suspense>
+      <PredictPageInner />
+    </Suspense>
+  );
+}
+
+function PredictPageInner() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [submitted, setSubmitted] = useState(false);
+  const [platform, setPlatform] = useState<PlatformId>("instagram");
+  const [caption, setCaption] = useState("");
+
+  useEffect(() => {
+    const seed = searchParams.get("seed");
+    if (seed !== "1") return;
+
+    try {
+      const raw = localStorage.getItem(PREDICT_SEED_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as { platformId?: PlatformId; caption?: string };
+        if (parsed.platformId && platformOptions.some((x) => x.id === parsed.platformId)) {
+          setPlatform(parsed.platformId);
+        }
+        if (parsed.caption && parsed.caption.trim()) {
+          setCaption(parsed.caption);
+        }
+      }
+    } catch {
+      // ignore
+    } finally {
+      try {
+        localStorage.removeItem(PREDICT_SEED_KEY);
+      } catch {
+        // ignore
+      }
+      router.replace("/predict");
+    }
+  }, [router, searchParams]);
 
   return (
     <div>
@@ -35,8 +83,16 @@ export default function PredictPage() {
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-[#625d58] mb-1.5 uppercase tracking-wider">Platform</label>
-              <select className="w-full border border-border rounded-md px-3 py-2 text-sm bg-paper text-ink focus:outline-none focus:ring-1 focus:ring-warm">
-                {platforms.map((p) => <option key={p}>{p}</option>)}
+              <select
+                value={platform}
+                onChange={(e) => setPlatform(e.target.value as PlatformId)}
+                className="w-full border border-border rounded-md px-3 py-2 text-sm bg-paper text-ink focus:outline-none focus:ring-1 focus:ring-warm"
+              >
+                {platformOptions.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
@@ -56,6 +112,8 @@ export default function PredictPage() {
               <textarea
                 rows={4}
                 placeholder="Paste or write your caption here..."
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
                 className="w-full border border-border rounded-md px-3 py-2 text-sm bg-paper text-ink placeholder:text-[#625d58] focus:outline-none focus:ring-1 focus:ring-warm resize-none"
               />
             </div>

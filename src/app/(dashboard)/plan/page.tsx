@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/shared/page-header";
 import { PlatformBadge } from "@/components/shared/platform-badge";
-import { mockScheduledPosts } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { addDays, dateKeyInTimeZone, formatShortMonthDay, weekIndexMon0 } from "@/lib/datetime";
 import { getWorkspaceTimezoneClient } from "@/lib/demo-session";
@@ -146,8 +145,38 @@ export default function PlanPage() {
   const [weekStart, setWeekStart] = useState<Date>(() => getMonday(new Date(), timeZone));
   const [recSetIndex, setRecSetIndex] = useState(0);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loadingPosts, setLoadingPosts] = useState(true);
+  const [postsError, setPostsError] = useState<string | null>(null);
 
   const recommendations = recommendationSets[recSetIndex];
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setLoadingPosts(true);
+      setPostsError(null);
+      try {
+        const res = await fetch("/api/scheduled-posts", { cache: "no-store" });
+        if (!res.ok) {
+          const body = (await res.json().catch(() => null)) as { error?: string } | null;
+          throw new Error(body?.error || `request_failed_${res.status}`);
+        }
+        const body = (await res.json()) as { posts: Post[] };
+        if (cancelled) return;
+        setPosts(body.posts || []);
+      } catch (e) {
+        if (cancelled) return;
+        setPostsError(e instanceof Error ? e.message : "Failed to load scheduled posts");
+      } finally {
+        if (!cancelled) setLoadingPosts(false);
+      }
+    }
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleNavigate = (dir: 1 | -1) => {
     setWeekStart((prev) => addDays(prev, dir * 7));
@@ -184,6 +213,7 @@ export default function PlanPage() {
               type="button"
               aria-label="Previous week"
               onClick={() => handleNavigate(-1)}
+              aria-label="Previous week"
               className="px-2.5 py-1 text-xs border border-border rounded hover:bg-shell transition-colors"
             >
               <ChevronLeft className="size-3.5 text-[#625d58]" />
@@ -192,6 +222,7 @@ export default function PlanPage() {
               type="button"
               aria-label="Next week"
               onClick={() => handleNavigate(1)}
+              aria-label="Next week"
               className="px-2.5 py-1 text-xs border border-border rounded hover:bg-shell transition-colors"
             >
               <ChevronRight className="size-3.5 text-[#625d58]" />
@@ -199,10 +230,17 @@ export default function PlanPage() {
           </div>
         </div>
 
+        {loadingPosts && (
+          <div className="mb-3 text-xs text-[#625d58]">Loading scheduled posts…</div>
+        )}
+        {postsError && (
+          <div className="mb-3 text-xs text-[#9e4d3b]">Could not load scheduled posts: {postsError}</div>
+        )}
+
         <div className="grid grid-cols-7 gap-2">
           {days.map((day, i) => {
             const dayDate = addDays(weekStart, i);
-            const dayPosts = getPostsForDay(mockScheduledPosts, dayDate, timeZone);
+            const dayPosts = getPostsForDay(posts, dayDate, timeZone);
             const isToday = dateKeyInTimeZone(dayDate, timeZone) === dateKeyInTimeZone(new Date(), timeZone);
 
             return (
@@ -279,6 +317,7 @@ export default function PlanPage() {
           onOpenChange={(open) => {
             if (!open) setSelectedPost(null);
           }}
+          timeZone={timeZone}
         />
       )}
     </div>

@@ -138,8 +138,8 @@ function VocabularyManager({
         />
         <button
           type="button"
-          aria-label="Add word"
           onClick={addWord}
+          aria-label="Add vocabulary word"
           className="px-3 py-2 bg-warm text-paper rounded-md text-sm font-medium hover:bg-warm/90 transition-colors"
         >
           <Plus className="size-4" />
@@ -154,8 +154,8 @@ function VocabularyManager({
             {word}
             <button
               type="button"
-              aria-label={`Remove ${word}`}
               onClick={() => removeWord(word)}
+              aria-label={`Remove vocabulary word: ${word}`}
               className="text-[#625d58] hover:text-[#9e4d3b]"
             >
               <Trash2 className="size-3" />
@@ -201,8 +201,8 @@ function BannedPhrasesManager({
         />
         <button
           type="button"
-          aria-label="Add banned phrase"
           onClick={addPhrase}
+          aria-label="Add banned phrase"
           className="px-3 py-2 bg-warm text-paper rounded-md text-sm font-medium hover:bg-warm/90 transition-colors"
         >
           <Plus className="size-4" />
@@ -217,8 +217,8 @@ function BannedPhrasesManager({
             {phrase}
             <button
               type="button"
-              aria-label={`Remove ${phrase}`}
               onClick={() => removePhrase(phrase)}
+              aria-label={`Remove banned phrase: ${phrase}`}
               className="hover:text-ink"
             >
               <Trash2 className="size-3" />
@@ -267,8 +267,8 @@ function ExamplePostsSection({
                 </span>
                 <button
                   type="button"
-                  aria-label="Remove example post"
                   onClick={() => onRemove(post.id)}
+                  aria-label="Remove example post"
                   className="text-[#625d58] hover:text-[#9e4d3b]"
                 >
                   <Trash2 className="size-3.5" />

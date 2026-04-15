@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/shared/page-header";
 import { PlatformBadge } from "@/components/shared/platform-badge";
 import { Copy, Check, Sparkles } from "lucide-react";
 import type { PlatformId } from "@/types/platform";
+import { NEW_POST_SEED_KEY, PREDICT_SEED_KEY } from "@/lib/seed-keys";
 
 const platforms: { id: PlatformId; label: string }[] = [
   { id: "instagram", label: "Instagram" },
@@ -42,6 +44,7 @@ const mockVariants = [
 ];
 
 export default function DraftPage() {
+  const router = useRouter();
   const [selectedPlatform, setSelectedPlatform] = useState<PlatformId>("instagram");
   const [generated, setGenerated] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
@@ -148,6 +151,7 @@ export default function DraftPage() {
                       type="button"
                       aria-label={`Copy ${v.label}`}
                       onClick={() => handleCopy(v.id, v.content)}
+                      aria-label={`Copy ${v.label}`}
                       className="p-1.5 rounded hover:bg-shell transition-colors text-[#625d58] hover:text-ink"
                     >
                       {copied === v.id ? <Check className="size-3.5 text-[#536443]" /> : <Copy className="size-3.5" />}
@@ -156,10 +160,46 @@ export default function DraftPage() {
                 </div>
                 <p className="text-sm text-ink leading-relaxed">{v.content}</p>
                 <div className="flex gap-2 mt-3">
-                  <button className="text-xs px-3 py-1.5 border border-border rounded hover:bg-shell transition-colors text-[#625d58]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      try {
+                        localStorage.setItem(
+                          PREDICT_SEED_KEY,
+                          JSON.stringify({
+                            platformId: selectedPlatform,
+                            caption: v.content,
+                          })
+                        );
+                      } catch {
+                        // ignore
+                      }
+                      router.push("/predict?seed=1");
+                    }}
+                    className="text-xs px-3 py-1.5 border border-border rounded hover:bg-shell transition-colors text-[#625d58]"
+                  >
                     Send to Predict →
                   </button>
-                  <button className="text-xs px-3 py-1.5 border border-border rounded hover:bg-shell transition-colors text-[#625d58]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      try {
+                        localStorage.setItem(
+                          NEW_POST_SEED_KEY,
+                          JSON.stringify({
+                            platformId: selectedPlatform,
+                            content: v.content,
+                            status: "draft",
+                            format: "text",
+                          })
+                        );
+                      } catch {
+                        // ignore
+                      }
+                      router.push("/schedule?new=1");
+                    }}
+                    className="text-xs px-3 py-1.5 border border-border rounded hover:bg-shell transition-colors text-[#625d58]"
+                  >
                     Add to Schedule
                   </button>
                 </div>

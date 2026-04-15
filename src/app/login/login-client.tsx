@@ -2,55 +2,54 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { setDemoSessionCookie } from "@/lib/demo-session";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { DEMO_PROTECTED_PREFIXES } from "@/lib/demo-constants";
 import { loginCSS } from "./login.styles";
 
 type Tab = "login" | "register";
 
-function titleCase(value: string) {
-  return value
-    .split(/[\s._-]+/)
-    .filter(Boolean)
-    .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
-    .join(" ");
-}
-
 function sanitizeNextPath(raw: string | null): string {
-  if (!raw) return "/overview";
+  const fallback = "/overview";
+  if (!raw) return fallback;
   const next = raw.trim();
-  if (!next) return "/overview";
+  if (!next) return fallback;
 
-  // Only allow in-app absolute paths (not scheme-relative //example.com).
-  if (!next.startsWith("/")) return "/overview";
-  if (next.startsWith("//")) return "/overview";
-  if (/\s/.test(next)) return "/overview";
+  // Only allow same-origin in-app absolute paths (not scheme-relative //example.com).
+  if (!next.startsWith("/")) return fallback;
+  if (next.startsWith("//")) return fallback;
+  if (/\s/.test(next)) return fallback;
 
   const url = new URL(next, window.location.origin);
-  if (url.origin !== window.location.origin) return "/overview";
+  if (url.origin !== window.location.origin) return fallback;
 
   const ok = DEMO_PROTECTED_PREFIXES.some(
     (p) => url.pathname === p || url.pathname.startsWith(p + "/")
   );
-  if (!ok) return "/overview";
+  if (!ok) return fallback;
 
   return url.pathname + url.search + url.hash;
 }
-
 export function LoginClient() {
-  const router = useRouter();
   const [tab, setTab] = useState<Tab>("login");
   const [loginStatus, setLoginStatus] = useState("");
   const [registerStatus, setRegisterStatus] = useState("");
 
   useEffect(() => {
-    const hash = window.location.hash;
-    if (hash === "#register") setTab("register");
+    function syncTabFromHash() {
+      const hash = window.location.hash;
+      setTab(hash === "#register" ? "register" : "login");
+    }
 
+    syncTabFromHash();
+    window.addEventListener("hashchange", syncTabFromHash);
+    return () => window.removeEventListener("hashchange", syncTabFromHash);
+  }, []);
+
+  useEffect(() => {
     const shell = document.querySelector<HTMLElement>(".mka");
     if (!shell) return;
 
+    // Re-run reveals when tab swaps in new DOM.
     const reveals = shell.querySelectorAll<Element>(".reveal");
     const obs = new IntersectionObserver(
       (entries) =>
@@ -71,65 +70,93 @@ export function LoginClient() {
     });
 
     return () => obs.disconnect();
-  }, []);
+  }, [tab]);
 
-  function handleLogin(e: React.FormEvent<HTMLFormElement>) {
+  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const email = (form.elements.namedItem("login-email") as HTMLInputElement).value.trim();
-    const password = (form.elements.namedItem("login-password") as HTMLInputElement).value.trim();
+    const password = (form.elements.namedItem("login-password") as HTMLInputElement | null)?.value.trim() || "";
     if (!email || !password) {
-      setLoginStatus("Enter an email and password to open the demo workspace.");
+      setLoginStatus("Enter your email and password.");
       return;
     }
 
-    const isDemo = email.toLowerCase() === "demo@krowdr.com" && password === "krowdr-demo";
-    const localPart = email.split("@")[0] || "demo";
-    const fullName = isDemo ? "Jordan Lee" : titleCase(localPart);
-
-    setDemoSessionCookie({
-      firstName: fullName.split(" ")[0] || "Demo",
-      fullName,
-      email,
-      teamName: "Krowdr Demo Workspace",
-      role: "Social strategist",
-      mode: "login",
-      lastLoginAt: new Date().toISOString(),
-    });
-
     const next = sanitizeNextPath(new URLSearchParams(window.location.search).get("next"));
 
-    setLoginStatus("Opening the demo dashboard...");
-    setTimeout(() => router.push(next), 280);
+    setLoginStatus("Signing you in...");
+    const supabase = createSupabaseBrowserClient();
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.toLowerCase(),
+      password,
+    });
+
+    if (error) {
+      const msg = error.message || "Could not sign in.";
+      setLoginStatus(`${msg}${typeof error.status === "number" ? ` (HTTP ${error.status})` : ""}`);
+      return;
+    }
+
+    window.location.assign(next);
   }
 
-  function handleRegister(e: React.FormEvent<HTMLFormElement>) {
+  async function handleRegister(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const firstName = (form.elements.namedItem("first-name") as HTMLInputElement).value.trim();
     const lastName = (form.elements.namedItem("last-name") as HTMLInputElement).value.trim();
     const email = (form.elements.namedItem("register-email") as HTMLInputElement).value.trim();
+    const password = (form.elements.namedItem("register-password") as HTMLInputElement | null)?.value.trim() || "";
+    const confirmPassword = (form.elements.namedItem("register-password-confirm") as HTMLInputElement | null)?.value.trim() || "";
     const teamName = (form.elements.namedItem("team-name") as HTMLInputElement).value.trim();
     const role = (form.elements.namedItem("role") as HTMLSelectElement).value.trim();
-    if (!firstName || !lastName || !email || !teamName || !role) {
-      setRegisterStatus("Fill in the full form to create the demo workspace.");
+    if (!firstName || !lastName || !email || !password || !confirmPassword || !teamName || !role) {
+      setRegisterStatus("Fill in the full form to create your account.");
       return;
     }
 
-    setDemoSessionCookie({
-      firstName,
-      fullName: firstName + " " + lastName,
-      email,
-      teamName,
-      role,
-      mode: "register",
-      lastLoginAt: new Date().toISOString(),
-    });
+    if (password.length < 8) {
+      setRegisterStatus("Password must be at least 8 characters.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setRegisterStatus("Passwords do not match.");
+      return;
+    }
 
     const next = sanitizeNextPath(new URLSearchParams(window.location.search).get("next"));
+    const emailRedirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
 
-    setRegisterStatus("Building your demo workspace...");
-    setTimeout(() => router.push(next), 280);
+    setRegisterStatus("Creating your account...");
+    const supabase = createSupabaseBrowserClient();
+    const { data, error } = await supabase.auth.signUp({
+      email: email.toLowerCase(),
+      password,
+      options: {
+        emailRedirectTo,
+        data: {
+          // Will be available on the auth user as metadata; we can use this later for onboarding.
+          first_name: firstName,
+          last_name: lastName,
+          team_name: teamName,
+          role,
+        },
+      },
+    });
+
+    if (error) {
+      const msg = error.message || "Could not create account.";
+      setRegisterStatus(`${msg}${typeof error.status === "number" ? ` (HTTP ${error.status})` : ""}`);
+      return;
+    }
+
+    if (data.session) {
+      window.location.assign(next);
+      return;
+    }
+
+    setRegisterStatus("Account created. Check your email to confirm, then log in.");
   }
 
   return (
@@ -149,10 +176,10 @@ export function LoginClient() {
             </Link>
           </div>
           <div className="nav-actions">
-            <Link className="button button-ghost" href="/features">
-              Features
+            <Link className="button button-ghost" href="/login#login">
+              Log In
             </Link>
-            <Link className="button button-solid" href="/login">
+            <Link className="button button-solid" href="/login#register">
               Get Started
             </Link>
           </div>
@@ -208,7 +235,7 @@ export function LoginClient() {
                 className={`tab-button${tab === "login" ? " is-active" : ""}`}
                 onClick={() => {
                   setTab("login");
-                  history.replaceState(null, "", "#login");
+                  window.location.hash = "login";
                 }}
                 type="button"
               >
@@ -218,7 +245,7 @@ export function LoginClient() {
                 className={`tab-button${tab === "register" ? " is-active" : ""}`}
                 onClick={() => {
                   setTab("register");
-                  history.replaceState(null, "", "#register");
+                  window.location.hash = "register";
                 }}
                 type="button"
               >
@@ -235,21 +262,19 @@ export function LoginClient() {
                   </label>
                   <label className="field">
                     <span className="field-label">Password</span>
-                    <input type="password" name="login-password" placeholder="Enter your password" />
+                    <input type="password" name="login-password" placeholder="Enter your password" autoComplete="current-password" />
                   </label>
                 </div>
                 <div className="demo-note">
                   <div className="meta">
                     <div>
-                      <strong>Demo credentials</strong>
-                      <p>Email: demo@krowdr.com</p>
-                      <p>Password: krowdr-demo</p>
+                      <strong>Email and password</strong>
+                      <p>Sign in with the credentials you registered.</p>
                     </div>
                     <div>
                       <strong>Next step</strong>
                       <p>
-                        Use these credentials or any work email to enter the demo dashboard and explore
-                        the frontend shell.
+                        If you do not have an account yet, use Get Started.
                       </p>
                     </div>
                   </div>
@@ -284,6 +309,15 @@ export function LoginClient() {
                     <input type="email" name="register-email" placeholder="you@company.com" />
                   </label>
                   <label className="field">
+                    <span className="field-label">Password</span>
+                    <input type="password" name="register-password" placeholder="Create a password" autoComplete="new-password" />
+                    <span className="field-help">Minimum 8 characters.</span>
+                  </label>
+                  <label className="field">
+                    <span className="field-label">Confirm password</span>
+                    <input type="password" name="register-password-confirm" placeholder="Re-enter your password" autoComplete="new-password" />
+                  </label>
+                  <label className="field">
                     <span className="field-label">Team name</span>
                     <input type="text" name="team-name" placeholder="North Studio Social" />
                   </label>
@@ -302,7 +336,7 @@ export function LoginClient() {
                 </div>
                 <div className="form-actions">
                   <button className="button button-solid" type="submit">
-                    Create demo workspace
+                    Create account
                   </button>
                   <Link className="button button-ghost" href="/">
                     Back to landing
