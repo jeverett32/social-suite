@@ -11,9 +11,9 @@ export async function createSupabaseServerClient() {
       getAll() {
         return cookieStore.getAll();
       },
-      setAll(cookiesToSet) {
+      setAll(cookiesToSet: Array<{ name: string; value: string; options: Record<string, unknown> }>) {
         for (const { name, value, options } of cookiesToSet) {
-          cookieStore.set(name, value, options);
+          cookieStore.set(name, value, options as unknown as Parameters<typeof cookieStore.set>[2]);
         }
       },
     },

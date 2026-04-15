@@ -863,17 +863,37 @@ function SchedulePageInner() {
         title="Schedule"
         description="Plan and schedule your content across all platforms."
         action={
-          <button
-            onClick={() => {
-              setSelectedPost(null);
-              setNewPostSeed(null);
-              setShowModal(true);
-            }}
-            className="flex items-center gap-2 px-3 py-1.5 bg-warm text-paper rounded-md text-xs font-medium hover:bg-warm/90 transition-colors"
-          >
-            <Plus className="size-3" />
-            New Post
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={async () => {
+                const res = await fetch("/api/publish/run", { method: "POST" });
+                if (res.ok) {
+                  // Re-fetch posts after publishing.
+                  const refreshed = await fetch("/api/scheduled-posts", { cache: "no-store" });
+                  if (refreshed.ok) {
+                    const body = (await refreshed.json()) as { posts: Post[] };
+                    setPosts(body.posts || []);
+                  }
+                }
+              }}
+              className="flex items-center gap-2 px-3 py-1.5 border border-border bg-panel text-[#625d58] rounded-md text-xs font-medium hover:bg-paper hover:text-ink transition-colors"
+            >
+              Publish due
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedPost(null);
+                setNewPostSeed(null);
+                setShowModal(true);
+              }}
+              className="flex items-center gap-2 px-3 py-1.5 bg-warm text-paper rounded-md text-xs font-medium hover:bg-warm/90 transition-colors"
+            >
+              <Plus className="size-3" />
+              New Post
+            </button>
+          </div>
         }
       />
 

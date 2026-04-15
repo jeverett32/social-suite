@@ -213,7 +213,6 @@ export default function PlanPage() {
               type="button"
               aria-label="Previous week"
               onClick={() => handleNavigate(-1)}
-              aria-label="Previous week"
               className="px-2.5 py-1 text-xs border border-border rounded hover:bg-shell transition-colors"
             >
               <ChevronLeft className="size-3.5 text-[#625d58]" />
@@ -222,7 +221,6 @@ export default function PlanPage() {
               type="button"
               aria-label="Next week"
               onClick={() => handleNavigate(1)}
-              aria-label="Next week"
               className="px-2.5 py-1 text-xs border border-border rounded hover:bg-shell transition-colors"
             >
               <ChevronRight className="size-3.5 text-[#625d58]" />
@@ -317,7 +315,6 @@ export default function PlanPage() {
           onOpenChange={(open) => {
             if (!open) setSelectedPost(null);
           }}
-          timeZone={timeZone}
         />
       )}
     </div>
