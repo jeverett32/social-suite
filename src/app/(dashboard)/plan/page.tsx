@@ -71,10 +71,21 @@ const recommendationSets: Recommendation[][] = [
 
 // ─── Post Modal ───────────────────────────────────────────────────────────────
 
-function PostModal({ post, open, onOpenChange }: { post: Post; open: boolean; onOpenChange: (open: boolean) => void }) {
+function PostModal({
+  post,
+  open,
+  onOpenChange,
+  timeZone,
+}: {
+  post: Post;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  timeZone: string;
+}) {
   const router = useRouter();
   const scheduledTime = post.scheduledAt
     ? new Date(post.scheduledAt).toLocaleString("en-US", {
+        timeZone,
         weekday: "short",
         month: "short",
         day: "numeric",
@@ -260,6 +271,7 @@ export default function PlanPage() {
         <PostModal
           post={selectedPost}
           open={true}
+          timeZone={timeZone}
           onOpenChange={(open) => {
             if (!open) setSelectedPost(null);
           }}

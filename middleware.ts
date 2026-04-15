@@ -1,25 +1,12 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import { DEMO_SESSION_COOKIE } from "./src/lib/demo-constants";
-
-const PROTECTED_PREFIXES = [
-  "/overview",
-  "/learn",
-  "/plan",
-  "/predict",
-  "/draft",
-  "/inbox",
-  "/schedule",
-  "/listen",
-  "/voice",
-  "/settings",
-];
+import { DEMO_PROTECTED_PREFIXES, DEMO_SESSION_COOKIE } from "./src/lib/demo-constants";
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  const isProtected = PROTECTED_PREFIXES.some(
+  const isProtected = DEMO_PROTECTED_PREFIXES.some(
     (p) => pathname === p || pathname.startsWith(p + "/")
   );
   if (!isProtected) return NextResponse.next();

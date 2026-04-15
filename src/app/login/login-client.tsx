@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { setDemoSessionCookie } from "@/lib/demo-session";
+import { DEMO_PROTECTED_PREFIXES } from "@/lib/demo-constants";
 import { loginCSS } from "./login.styles";
 
 type Tab = "login" | "register";
@@ -14,6 +15,27 @@ function titleCase(value: string) {
     .filter(Boolean)
     .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
     .join(" ");
+}
+
+function sanitizeNextPath(raw: string | null): string {
+  if (!raw) return "/overview";
+  const next = raw.trim();
+  if (!next) return "/overview";
+
+  // Only allow in-app absolute paths (not scheme-relative //example.com).
+  if (!next.startsWith("/")) return "/overview";
+  if (next.startsWith("//")) return "/overview";
+  if (/\s/.test(next)) return "/overview";
+
+  const url = new URL(next, window.location.origin);
+  if (url.origin !== window.location.origin) return "/overview";
+
+  const ok = DEMO_PROTECTED_PREFIXES.some(
+    (p) => url.pathname === p || url.pathname.startsWith(p + "/")
+  );
+  if (!ok) return "/overview";
+
+  return url.pathname + url.search + url.hash;
 }
 
 export function LoginClient() {
@@ -75,10 +97,10 @@ export function LoginClient() {
       lastLoginAt: new Date().toISOString(),
     });
 
-    const next = new URLSearchParams(window.location.search).get("next");
+    const next = sanitizeNextPath(new URLSearchParams(window.location.search).get("next"));
 
     setLoginStatus("Opening the demo dashboard...");
-    setTimeout(() => router.push(next || "/overview"), 280);
+    setTimeout(() => router.push(next), 280);
   }
 
   function handleRegister(e: React.FormEvent<HTMLFormElement>) {
@@ -104,10 +126,10 @@ export function LoginClient() {
       lastLoginAt: new Date().toISOString(),
     });
 
-    const next = new URLSearchParams(window.location.search).get("next");
+    const next = sanitizeNextPath(new URLSearchParams(window.location.search).get("next"));
 
     setRegisterStatus("Building your demo workspace...");
-    setTimeout(() => router.push(next || "/overview"), 280);
+    setTimeout(() => router.push(next), 280);
   }
 
   return (
