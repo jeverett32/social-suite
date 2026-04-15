@@ -126,9 +126,22 @@ function AvailablePlatforms({ connected }: { connected: PlatformId[] }) {
               <button
                 disabled={isConnected}
                 type="button"
-                onClick={() => {
+                onClick={async () => {
                   if (isConnected) return;
-                  window.location.assign(`/api/oauth/${platform.id}/start?next=${encodeURIComponent("/settings/integrations")}`);
+
+                  // Stub-first: create a DB connection immediately.
+                  // Real OAuth is still available via the server routes once creds are configured.
+                  const res = await fetch("/api/platform-connections", {
+                    method: "POST",
+                    headers: { "content-type": "application/json" },
+                    body: JSON.stringify({ platformId: platform.id }),
+                  });
+                  if (!res.ok) {
+                    // Let the page-level loader surface any server errors on refresh.
+                    window.location.assign("/settings/integrations?error=connect_failed");
+                    return;
+                  }
+                  window.location.assign("/settings/integrations?connected=" + encodeURIComponent(platform.id));
                 }}
                 className={cn(
                   "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors",

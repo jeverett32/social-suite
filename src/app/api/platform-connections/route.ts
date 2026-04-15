@@ -77,3 +77,43 @@ export async function DELETE(req: Request) {
 
   return NextResponse.json({ ok: true });
 }
+
+export async function POST(req: Request) {
+  const supabase = await createSupabaseServerClient();
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError || !userData.user) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  const body = (await req.json().catch(() => null)) as { platformId?: string } | null;
+  const platformId = body?.platformId;
+  if (!platformId || typeof platformId !== "string") {
+    return NextResponse.json({ error: "missing_platform" }, { status: 400 });
+  }
+
+  // Stub-mode connect: creates a connection row without real OAuth tokens.
+  // Useful for local/demo environments without external app credentials.
+  const accountId = `stub_${platformId}`;
+  const { data, error } = await supabase
+    .from("platform_connections")
+    .upsert(
+      {
+        user_id: userData.user.id,
+        platform: platformId,
+        account_id: accountId,
+        account_name: "Demo Account",
+        scopes: [],
+        data: { kind: "stub" },
+      },
+      { onConflict: "user_id,platform,account_id" }
+    )
+    .select("id")
+    .single();
+
+  if (error) {
+    console.error("platform-connections:stub_connect_failed", error);
+    return NextResponse.json({ error: "connect_failed" }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true, id: (data as { id: string }).id }, { status: 201 });
+}
