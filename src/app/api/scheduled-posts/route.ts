@@ -51,10 +51,12 @@ export async function GET() {
   const { data, error } = await supabase
     .from("scheduled_posts")
     .select("id, platform_id, content, format, status, scheduled_at, published_at, media_url")
+    .eq("user_id", userData.user.id)
     .order("scheduled_at", { ascending: true, nullsFirst: true });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("scheduled-posts:get_failed", error);
+    return NextResponse.json({ error: "query_failed" }, { status: 500 });
   }
 
   return NextResponse.json({ posts: (data as ScheduledPostRow[]).map(rowToPost) });
@@ -100,7 +102,8 @@ export async function POST(req: Request) {
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("scheduled-posts:create_failed", error);
+    return NextResponse.json({ error: "create_failed" }, { status: 500 });
   }
 
   return NextResponse.json({ post: rowToPost(data as ScheduledPostRow) }, { status: 201 });
@@ -131,15 +134,38 @@ export async function PATCH(req: Request) {
   if (isPostStatus(body.status)) patch.status = body.status;
   if (isPostFormat(body.format)) patch.format = body.format;
 
+  // Keep the invariant: scheduled posts must have a scheduled_at.
+  if (body.status === "scheduled" && body.scheduledAt === undefined) {
+    const { data: existing, error: existingError } = await supabase
+      .from("scheduled_posts")
+      .select("scheduled_at")
+      .eq("id", body.id)
+      .eq("user_id", userData.user.id)
+      .single();
+
+    if (existingError || !existing) {
+      return NextResponse.json({ error: "not_found" }, { status: 404 });
+    }
+    if (!existing.scheduled_at) {
+      return NextResponse.json({ error: "scheduled_requires_time" }, { status: 400 });
+    }
+  }
+
+  if (body.status === "scheduled" && body.scheduledAt === null) {
+    return NextResponse.json({ error: "scheduled_requires_time" }, { status: 400 });
+  }
+
   const { data, error } = await supabase
     .from("scheduled_posts")
     .update(patch)
     .eq("id", body.id)
+    .eq("user_id", userData.user.id)
     .select("id, platform_id, content, format, status, scheduled_at, published_at, media_url")
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("scheduled-posts:update_failed", error);
+    return NextResponse.json({ error: "update_failed" }, { status: 500 });
   }
 
   return NextResponse.json({ post: rowToPost(data as ScheduledPostRow) });
@@ -158,9 +184,20 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "missing_id" }, { status: 400 });
   }
 
-  const { error } = await supabase.from("scheduled_posts").delete().eq("id", id);
+  const { data, error } = await supabase
+    .from("scheduled_posts")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", userData.user.id)
+    .select("id")
+    .maybeSingle();
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("scheduled-posts:delete_failed", error);
+    return NextResponse.json({ error: "delete_failed" }, { status: 500 });
+  }
+
+  if (!data) {
+    return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
 
   return NextResponse.json({ ok: true });

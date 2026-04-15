@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PlatformBadge } from "@/components/shared/platform-badge";
 import { cn } from "@/lib/utils";
 import {
@@ -12,8 +12,7 @@ import {
   ExternalLink,
   AlertCircle,
 } from "lucide-react";
-
-type PlatformId = "instagram" | "tiktok" | "linkedin" | "x" | "facebook" | "youtube" | "pinterest";
+import type { PlatformId } from "@/types/platform";
 
 interface ConnectedAccount {
   id: string;
@@ -24,22 +23,12 @@ interface ConnectedAccount {
   lastSync?: string;
 }
 
-const mockAccounts: ConnectedAccount[] = [
-  { id: "a1", platformId: "instagram", username: "@acme_official", connectedAt: "2026-01-15", status: "connected", lastSync: "2h ago" },
-  { id: "a2", platformId: "facebook", username: "Acme Marketing", connectedAt: "2026-01-15", status: "connected", lastSync: "2h ago" },
-  { id: "a3", platformId: "linkedin", username: "Acme Inc.", connectedAt: "2026-02-01", status: "connected", lastSync: "1d ago" },
-  { id: "a4", platformId: "tiktok", username: "@acme_tiktok", connectedAt: "2026-03-10", status: "error", lastSync: "Failed" },
-  { id: "a5", platformId: "x", username: "@acme_mktg", connectedAt: "2026-02-20", status: "connected", lastSync: "30m ago" },
-];
-
 const availablePlatforms: { id: PlatformId; name: string; description: string }[] = [
   { id: "instagram", name: "Instagram", description: "Posts, stories, reels, and DMs" },
   { id: "facebook", name: "Facebook", description: "Pages, posts, and messages" },
   { id: "linkedin", name: "LinkedIn", description: "Company pages and posts" },
   { id: "tiktok", name: "TikTok", description: "Video posts and analytics" },
-  { id: "x", name: "X (Twitter)", description: "Tweets and threads" },
-  { id: "youtube", name: "YouTube", description: "Video analytics and comments" },
-  { id: "pinterest", name: "Pinterest", description: "Pins and boards" },
+  { id: "youtube", name: "YouTube", description: "Channel analytics and uploads" },
 ];
 
 const statusConfig = {
@@ -48,7 +37,13 @@ const statusConfig = {
   expired: { icon: AlertCircle, color: "text-[#a28443]", bg: "bg-[#a28443]/10", label: "Expired" },
 };
 
-function ConnectedAccountsList({ accounts }: { accounts: ConnectedAccount[] }) {
+function ConnectedAccountsList({
+  accounts,
+  onDisconnect,
+}: {
+  accounts: ConnectedAccount[];
+  onDisconnect: (id: string) => void | Promise<void>;
+}) {
   return (
     <div className="bg-panel border border-border rounded-lg p-5">
       <h2 className="text-sm font-semibold text-ink mb-4">Connected accounts</h2>
@@ -92,9 +87,10 @@ function ConnectedAccountsList({ accounts }: { accounts: ConnectedAccount[] }) {
                      type="button"
                      aria-label={`Disconnect ${account.username}`}
                      className="p-2 hover:bg-panel rounded transition-colors text-[#625d58] hover:text-[#9e4d3b]"
-                   >
-                     <Unlink className="size-4" />
-                   </button>
+                      onClick={() => void onDisconnect(account.id)}
+                    >
+                      <Unlink className="size-4" />
+                    </button>
                  </div>
                </div>
              );
@@ -129,6 +125,11 @@ function AvailablePlatforms({ connected }: { connected: PlatformId[] }) {
               </div>
               <button
                 disabled={isConnected}
+                type="button"
+                onClick={() => {
+                  if (isConnected) return;
+                  window.location.assign(`/api/oauth/${platform.id}/start?next=${encodeURIComponent("/settings/integrations")}`);
+                }}
                 className={cn(
                   "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
                   isConnected
@@ -184,11 +185,56 @@ function ApiKeysSection() {
 }
 
 export default function IntegrationsPage() {
-  const connectedPlatforms = mockAccounts.filter((a) => a.status === "connected").map((a) => a.platformId);
+  const [accounts, setAccounts] = useState<ConnectedAccount[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch("/api/platform-connections", { cache: "no-store" });
+        if (!res.ok) {
+          const body = (await res.json().catch(() => null)) as { error?: string } | null;
+          throw new Error(body?.error || `request_failed_${res.status}`);
+        }
+        const body = (await res.json()) as { connections: ConnectedAccount[] };
+        if (cancelled) return;
+        setAccounts(body.connections || []);
+      } catch (e) {
+        if (cancelled) return;
+        setError(e instanceof Error ? e.message : "Failed to load connections");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const connectedPlatforms = accounts.filter((a) => a.status === "connected").map((a) => a.platformId);
+
+  async function handleDisconnect(id: string) {
+    setError(null);
+    const prev = accounts;
+    setAccounts((p) => p.filter((a) => a.id !== id));
+    const res = await fetch(`/api/platform-connections?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+    if (!res.ok) {
+      setAccounts(prev);
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      setError(body?.error || `disconnect_failed_${res.status}`);
+    }
+  }
 
   return (
     <div className="max-w-2xl space-y-6">
-      <ConnectedAccountsList accounts={mockAccounts} />
+      {loading && <div className="text-xs text-[#625d58]">Loading integrations…</div>}
+      {error && <div className="text-xs text-[#9e4d3b]">{error}</div>}
+      <ConnectedAccountsList accounts={accounts} onDisconnect={handleDisconnect} />
       <AvailablePlatforms connected={connectedPlatforms} />
       <ApiKeysSection />
     </div>

@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/shared/page-header";
 import { PlatformBadge } from "@/components/shared/platform-badge";
 import { cn } from "@/lib/utils";
 import { dateKeyInTimeZone, formatMonthYear, formatDayNumber } from "@/lib/datetime";
 import { getWorkspaceTimezoneClient } from "@/lib/demo-session";
+import { NEW_POST_SEED_KEY } from "@/lib/seed-keys";
 import {
   Calendar,
   List,
@@ -27,6 +29,14 @@ import type { PlatformId } from "@/types/platform";
 
 type ViewMode = "calendar" | "queue";
 type FilterStatus = "all" | PostStatus;
+
+function pad2(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+function toDateTimeLocalValue(date: Date): string {
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}T${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+}
 
 const statusColors: Record<PostStatus, string> = {
   draft:     "text-[#625d58] border-[#625d58]/30",
@@ -165,6 +175,14 @@ function CalendarView({
                 isToday && "bg-warm/5"
               )}
               onClick={() => onDayClick(day)}
+              role="button"
+              tabIndex={0}
+              aria-label={`Open ${dateStr}`}
+              onKeyDown={(e) => {
+                if (e.key !== "Enter" && e.key !== " ") return;
+                e.preventDefault();
+                onDayClick(day);
+              }}
             >
               <span
                 className={cn(
@@ -203,6 +221,10 @@ function CalendarView({
                 type="button"
                 aria-label="Add post"
                 className="absolute bottom-1 right-1 size-5 rounded bg-warm/10 hover:bg-warm/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDayClick(day);
+                }}
               >
                 <Plus className="size-3 text-warm" />
               </button>
@@ -218,11 +240,13 @@ function QueueView({
   posts,
   filter,
   onPostClick,
+  onRequestDelete,
   timeZone,
 }: {
   posts: Post[];
   filter: FilterStatus;
   onPostClick: (post: Post) => void;
+  onRequestDelete: (post: Post) => void;
   timeZone: string;
 }) {
   const filteredPosts = filter === "all" ? posts : posts.filter((p) => p.status === filter);
@@ -268,6 +292,15 @@ function QueueView({
                   key={post.id}
                   onClick={() => onPostClick(post)}
                   className="bg-panel border border-border rounded-lg p-4 hover:border-warm/40 cursor-pointer transition-colors group"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Open post: ${post.content.split("\n")[0]}`}
+                  onKeyDown={(e) => {
+                    if (e.key !== "Enter" && e.key !== " ") return;
+                    if (e.currentTarget !== e.target) return;
+                    e.preventDefault();
+                    onPostClick(post);
+                  }}
                 >
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-lg bg-shell flex items-center justify-center flex-shrink-0">
@@ -291,13 +324,29 @@ function QueueView({
                     </div>
 
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button aria-label="Edit post" className="p-1.5 hover:bg-shell rounded transition-colors">
+                      <button
+                        type="button"
+                        aria-label="Edit post"
+                        className="p-1.5 hover:bg-shell rounded transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onPostClick(post);
+                        }}
+                      >
                         <Edit className="size-3.5 text-[#625d58]" />
                       </button>
-                      <button aria-label="Delete post" className="p-1.5 hover:bg-shell rounded transition-colors">
+                      <button
+                        type="button"
+                        aria-label="Delete post"
+                        className="p-1.5 hover:bg-shell rounded transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onRequestDelete(post);
+                        }}
+                      >
                         <Trash2 className="size-3.5 text-[#625d58]" />
                       </button>
-                      <button aria-label="More options" className="p-1.5 hover:bg-shell rounded transition-colors">
+                      <button type="button" aria-label="More options" className="p-1.5 hover:bg-shell rounded transition-colors">
                         <MoreHorizontal className="size-3.5 text-[#625d58]" />
                       </button>
                     </div>
@@ -314,21 +363,45 @@ function QueueView({
 
 function PostModal({
   post,
+  seed,
   open,
   onOpenChange,
   onSave,
 }: {
   post?: Post | null;
+  seed?: Partial<Post> | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (post: Partial<Post>) => void | Promise<void>;
+  onSave: (post: Partial<Post>) => Promise<{ ok: true } | { ok: false; error: string }>;
 }) {
-  const [content, setContent] = useState(post?.content || "");
-  const [platform, setPlatform] = useState<PlatformId>(post?.platformId || "instagram");
-  const [status, setStatus] = useState<PostStatus>(post?.status || "draft");
+  const [content, setContent] = useState(post?.content || seed?.content || "");
+  const [platform, setPlatform] = useState<PlatformId>(post?.platformId || (seed?.platformId as PlatformId) || "instagram");
+  const [status, setStatus] = useState<PostStatus>(post?.status || (seed?.status as PostStatus) || "draft");
   const [scheduledDate, setScheduledDate] = useState(
-    post?.scheduledAt ? new Date(post.scheduledAt).toISOString().slice(0, 16) : ""
+    post?.scheduledAt
+      ? toDateTimeLocalValue(new Date(post.scheduledAt))
+      : seed?.scheduledAt
+        ? toDateTimeLocalValue(new Date(seed.scheduledAt))
+        : ""
   );
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    setContent(post?.content || seed?.content || "");
+    setPlatform((post?.platformId || (seed?.platformId as PlatformId) || "instagram") as PlatformId);
+    setStatus((post?.status || (seed?.status as PostStatus) || "draft") as PostStatus);
+    setScheduledDate(
+      post?.scheduledAt
+        ? toDateTimeLocalValue(new Date(post.scheduledAt))
+        : seed?.scheduledAt
+          ? toDateTimeLocalValue(new Date(seed.scheduledAt))
+          : ""
+    );
+    setSaveError(null);
+    setSaving(false);
+  }, [open, post?.id, post?.scheduledAt, post?.content, post?.platformId, post?.status, seed?.content, seed?.platformId, seed?.scheduledAt, seed?.status]);
 
   const platforms: { id: PlatformId; label: string }[] = [
     { id: "instagram", label: "Instagram" },
@@ -338,15 +411,23 @@ function PostModal({
     { id: "facebook", label: "Facebook" },
   ];
 
-  const handleSave = () => {
-    void onSave({
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveError(null);
+    const res = await onSave({
+      ...seed,
       ...post,
       content,
       platformId: platform,
       status,
       scheduledAt: scheduledDate ? new Date(scheduledDate).toISOString() : undefined,
     });
-    onOpenChange(false);
+    if (res.ok) {
+      onOpenChange(false);
+      return;
+    }
+    setSaveError(res.error);
+    setSaving(false);
   };
 
   return (
@@ -366,6 +447,9 @@ function PostModal({
           </div>
 
           <div className="p-5 space-y-4">
+          {saveError && (
+            <div className="text-xs text-[#9e4d3b]">{saveError}</div>
+          )}
           <div>
             <label className="block text-xs font-medium text-[#625d58] uppercase tracking-wider mb-2">
               Platform
@@ -438,17 +522,68 @@ function PostModal({
         <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-border">
           <button
             onClick={() => onOpenChange(false)}
+            disabled={saving}
             className="px-4 py-2 text-sm text-[#625d58] hover:text-ink transition-colors"
           >
             Cancel
           </button>
           <button
-            onClick={handleSave}
+            onClick={() => void handleSave()}
+            disabled={saving}
             className="px-4 py-2 bg-warm text-paper rounded-md text-sm font-medium hover:bg-warm/90 transition-colors"
           >
-            {status === "draft" ? "Save as Draft" : "Schedule Post"}
+            {saving ? "Saving…" : status === "draft" ? "Save as Draft" : "Schedule Post"}
           </button>
         </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+}
+
+function DeleteConfirmDialog({
+  open,
+  onOpenChange,
+  post,
+  onConfirm,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  post: Post | null;
+  onConfirm: (post: Post) => void | Promise<void>;
+}) {
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 bg-ink/50 z-50" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[calc(100%-2rem)] max-w-md bg-panel border border-border rounded-lg shadow-lg">
+          <div className="px-5 py-4 border-b border-border">
+            <Dialog.Title className="text-sm font-semibold text-ink">Delete post?</Dialog.Title>
+            <p className="mt-2 text-xs text-[#625d58]">
+              This can&apos;t be undone.
+            </p>
+            {post && (
+              <p className="mt-2 text-xs text-ink line-clamp-2">{post.content}</p>
+            )}
+          </div>
+          <div className="flex items-center justify-end gap-2 px-5 py-4">
+            <Dialog.Close asChild>
+              <button type="button" className="px-4 py-2 text-sm text-[#625d58] hover:text-ink transition-colors">
+                Cancel
+              </button>
+            </Dialog.Close>
+            <button
+              type="button"
+              onClick={() => {
+                if (!post) return;
+                void onConfirm(post);
+                onOpenChange(false);
+              }}
+              className="px-4 py-2 bg-[#9e4d3b] text-paper rounded-md text-sm font-medium hover:bg-[#9e4d3b]/90 transition-colors"
+            >
+              Delete
+            </button>
+          </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
@@ -547,7 +682,17 @@ function Sidebar({
 }
 
 export default function SchedulePage() {
+  return (
+    <Suspense>
+      <SchedulePageInner />
+    </Suspense>
+  );
+}
+
+function SchedulePageInner() {
   const timeZone = getWorkspaceTimezoneClient();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [view, setView] = useState<ViewMode>("calendar");
   const [filter, setFilter] = useState<FilterStatus>("all");
   const [currentMonth, setCurrentMonth] = useState(() => {
@@ -558,7 +703,10 @@ export default function SchedulePage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [newPostSeed, setNewPostSeed] = useState<Partial<Post> | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Post | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -587,12 +735,53 @@ export default function SchedulePage() {
     };
   }, []);
 
+  const editId = searchParams.get("edit");
+  const wantsNew = searchParams.get("new") === "1";
+
+  useEffect(() => {
+    if (!wantsNew) return;
+    try {
+      const raw = localStorage.getItem(NEW_POST_SEED_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as Partial<Post>;
+        setNewPostSeed(parsed);
+      } else {
+        setNewPostSeed(null);
+      }
+    } catch {
+      setNewPostSeed(null);
+    } finally {
+      try {
+        localStorage.removeItem(NEW_POST_SEED_KEY);
+      } catch {
+        // ignore
+      }
+      setSelectedPost(null);
+      setShowModal(true);
+      router.replace("/schedule");
+    }
+  }, [router, wantsNew]);
+
+  useEffect(() => {
+    if (!editId) return;
+    const post = posts.find((p) => p.id === editId);
+    if (!post) return;
+    setNewPostSeed(null);
+    setSelectedPost(post);
+    setShowModal(true);
+    router.replace("/schedule");
+  }, [editId, posts, router]);
+
   const handlePostClick = (post: Post) => {
+    setNewPostSeed(null);
     setSelectedPost(post);
     setShowModal(true);
   };
 
   const handleDayClick = (date: Date) => {
+    const d = new Date(date);
+    d.setHours(14, 0, 0, 0); // default time in the user's local timezone
+    setNewPostSeed({ scheduledAt: d.toISOString(), status: "draft", format: "text" });
     setSelectedPost(null);
     setShowModal(true);
   };
@@ -608,6 +797,7 @@ export default function SchedulePage() {
   const handleSavePost = async (postData: Partial<Post>) => {
     if (selectedPost) {
       // Optimistic update.
+      const prevPost = posts.find((p) => p.id === selectedPost.id) || null;
       setPosts((prev) => prev.map((p) => (p.id === selectedPost.id ? ({ ...p, ...postData } as Post) : p)));
 
       const res = await fetch("/api/scheduled-posts", {
@@ -619,8 +809,14 @@ export default function SchedulePage() {
       if (res.ok) {
         const body = (await res.json()) as { post: Post };
         setPosts((prev) => prev.map((p) => (p.id === selectedPost.id ? body.post : p)));
+        return { ok: true } as const;
       }
-      return;
+
+      if (prevPost) {
+        setPosts((prev) => prev.map((p) => (p.id === selectedPost.id ? prevPost : p)));
+      }
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      return { ok: false, error: body?.error || `Could not save (HTTP ${res.status})` } as const;
     }
 
     const res = await fetch("/api/scheduled-posts", {
@@ -629,9 +825,28 @@ export default function SchedulePage() {
       body: JSON.stringify(postData),
     });
 
-    if (!res.ok) return;
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      return { ok: false, error: body?.error || `Could not create (HTTP ${res.status})` } as const;
+    }
     const body = (await res.json()) as { post: Post };
     setPosts((prev) => [...prev, body.post]);
+    return { ok: true } as const;
+  };
+
+  const handleDeletePost = async (post: Post) => {
+    setLoadError(null);
+    setPosts((p) => p.filter((x) => x.id !== post.id));
+
+    const res = await fetch(`/api/scheduled-posts?id=${encodeURIComponent(post.id)}`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) {
+      // Roll back just this post (don't clobber other concurrent mutations).
+      setPosts((prev) => (prev.some((x) => x.id === post.id) ? prev : [post, ...prev]));
+      setLoadError(`Could not delete post (HTTP ${res.status})`);
+    }
   };
 
   const filters: { value: FilterStatus; label: string }[] = [
@@ -651,6 +866,7 @@ export default function SchedulePage() {
           <button
             onClick={() => {
               setSelectedPost(null);
+              setNewPostSeed(null);
               setShowModal(true);
             }}
             className="flex items-center gap-2 px-3 py-1.5 bg-warm text-paper rounded-md text-xs font-medium hover:bg-warm/90 transition-colors"
@@ -724,21 +940,43 @@ export default function SchedulePage() {
               timeZone={timeZone}
             />
           ) : (
-            <QueueView posts={posts} filter={filter} onPostClick={handlePostClick} timeZone={timeZone} />
+            <QueueView
+              posts={posts}
+              filter={filter}
+              onPostClick={handlePostClick}
+              onRequestDelete={(post) => {
+                setDeleteTarget(post);
+                setDeleteOpen(true);
+              }}
+              timeZone={timeZone}
+            />
           )}
         </div>
 
-        <Sidebar posts={posts} onNewPost={() => {
-          setSelectedPost(null);
-          setShowModal(true);
-        }} timeZone={timeZone} />
+        <Sidebar
+          posts={posts}
+          onNewPost={() => {
+            setSelectedPost(null);
+            setNewPostSeed(null);
+            setShowModal(true);
+          }}
+          timeZone={timeZone}
+        />
       </div>
 
       <PostModal
         post={selectedPost}
+        seed={selectedPost ? null : newPostSeed}
         open={showModal}
         onOpenChange={setShowModal}
         onSave={handleSavePost}
+      />
+
+      <DeleteConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        post={deleteTarget}
+        onConfirm={handleDeletePost}
       />
     </div>
   );
