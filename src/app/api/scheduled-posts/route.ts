@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getOrCreateDefaultWorkspaceId } from "@/lib/workspace/server";
 import type { Post, PostFormat, PostStatus } from "@/types/post";
 
 type ScheduledPostRow = {
@@ -48,10 +49,18 @@ export async function GET() {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
+  let workspaceId: string;
+  try {
+    workspaceId = await getOrCreateDefaultWorkspaceId({ supabase, userId: userData.user.id });
+  } catch (e) {
+    console.error("workspace:init_failed", { route: "scheduled-posts:get", error: e });
+    return NextResponse.json({ error: "workspace_unavailable" }, { status: 503 });
+  }
+
   const { data, error } = await supabase
     .from("scheduled_posts")
     .select("id, platform_id, content, format, status, scheduled_at, published_at, media_url")
-    .eq("user_id", userData.user.id)
+    .eq("workspace_id", workspaceId)
     .order("scheduled_at", { ascending: true, nullsFirst: true });
 
   if (error) {
@@ -67,6 +76,14 @@ export async function POST(req: Request) {
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError || !userData.user) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  let workspaceId: string;
+  try {
+    workspaceId = await getOrCreateDefaultWorkspaceId({ supabase, userId: userData.user.id });
+  } catch (e) {
+    console.error("workspace:init_failed", { route: "scheduled-posts:post", error: e });
+    return NextResponse.json({ error: "workspace_unavailable" }, { status: 503 });
   }
 
   const body = (await req.json().catch(() => null)) as Partial<Post> | null;
@@ -91,6 +108,7 @@ export async function POST(req: Request) {
     .from("scheduled_posts")
     .insert({
       user_id: userData.user.id,
+      workspace_id: workspaceId,
       platform_id: platformId,
       content,
       status,
@@ -114,6 +132,14 @@ export async function PATCH(req: Request) {
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError || !userData.user) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  let workspaceId: string;
+  try {
+    workspaceId = await getOrCreateDefaultWorkspaceId({ supabase, userId: userData.user.id });
+  } catch (e) {
+    console.error("workspace:init_failed", { route: "scheduled-posts:patch", error: e });
+    return NextResponse.json({ error: "workspace_unavailable" }, { status: 503 });
   }
 
   const body = (await req.json().catch(() => null)) as Partial<Post> | null;
@@ -140,7 +166,7 @@ export async function PATCH(req: Request) {
       .from("scheduled_posts")
       .select("scheduled_at")
       .eq("id", body.id)
-      .eq("user_id", userData.user.id)
+      .eq("workspace_id", workspaceId)
       .single();
 
     if (existingError || !existing) {
@@ -159,7 +185,7 @@ export async function PATCH(req: Request) {
     .from("scheduled_posts")
     .update(patch)
     .eq("id", body.id)
-    .eq("user_id", userData.user.id)
+    .eq("workspace_id", workspaceId)
     .select("id, platform_id, content, format, status, scheduled_at, published_at, media_url")
     .single();
 
@@ -178,6 +204,14 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
+  let workspaceId: string;
+  try {
+    workspaceId = await getOrCreateDefaultWorkspaceId({ supabase, userId: userData.user.id });
+  } catch (e) {
+    console.error("workspace:init_failed", { route: "scheduled-posts:delete", error: e });
+    return NextResponse.json({ error: "workspace_unavailable" }, { status: 503 });
+  }
+
   const url = new URL(req.url);
   const id = url.searchParams.get("id");
   if (!id) {
@@ -188,7 +222,7 @@ export async function DELETE(req: Request) {
     .from("scheduled_posts")
     .delete()
     .eq("id", id)
-    .eq("user_id", userData.user.id)
+    .eq("workspace_id", workspaceId)
     .select("id")
     .maybeSingle();
   if (error) {

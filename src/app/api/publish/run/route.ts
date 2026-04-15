@@ -1,11 +1,20 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getOrCreateDefaultWorkspaceId } from "@/lib/workspace/server";
 
 export async function POST() {
   const supabase = await createSupabaseServerClient();
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError || !userData.user) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  let workspaceId: string;
+  try {
+    workspaceId = await getOrCreateDefaultWorkspaceId({ supabase, userId: userData.user.id });
+  } catch (e) {
+    console.error("workspace:init_failed", { route: "publish:run", error: e });
+    return NextResponse.json({ error: "workspace_unavailable" }, { status: 503 });
   }
 
   // Stub publisher: marks due scheduled posts as published.
@@ -16,7 +25,7 @@ export async function POST() {
   const { data: due, error: dueError } = await supabase
     .from("scheduled_posts")
     .select("id")
-    .eq("user_id", userData.user.id)
+    .eq("workspace_id", workspaceId)
     .eq("status", "scheduled")
     .lte("scheduled_at", nowIso);
 
@@ -34,7 +43,7 @@ export async function POST() {
     .from("scheduled_posts")
     .update({ status: "published", published_at: nowIso })
     .in("id", ids)
-    .eq("user_id", userData.user.id);
+    .eq("workspace_id", workspaceId);
 
   if (updateError) {
     console.error("publish:update_failed", updateError);

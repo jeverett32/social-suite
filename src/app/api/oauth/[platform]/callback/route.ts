@@ -4,10 +4,34 @@ import type { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { encryptToken } from "@/lib/token-crypto";
 import { getOAuthClientCreds, getOAuthConfig } from "@/lib/oauth/platforms";
+import { getOrCreateDefaultWorkspaceId } from "@/lib/workspace/server";
 
 const OAUTH_STATE_COOKIE = "krowdr_oauth_state";
 const OAUTH_VERIFIER_COOKIE = "krowdr_oauth_verifier";
 const OAUTH_PLATFORM_COOKIE = "krowdr_oauth_platform";
+
+function sanitizeNextPath(raw: string | null): string {
+  const fallback = "/settings/integrations";
+  if (!raw) return fallback;
+  const next = raw.trim();
+  if (!next) return fallback;
+  if (!next.startsWith("/")) return fallback;
+  if (next.startsWith("//")) return fallback;
+  if (/\s/.test(next)) return fallback;
+
+  const url = new URL(next, "http://local");
+  const ok = url.pathname === "/settings/integrations" || url.pathname.startsWith("/settings/");
+  if (!ok) return fallback;
+  return url.pathname;
+}
+
+function withClearedOAuthCookies(res: NextResponse) {
+  // Clear transient cookies.
+  res.cookies.set(OAUTH_STATE_COOKIE, "", { path: "/", maxAge: 0 });
+  res.cookies.set(OAUTH_VERIFIER_COOKIE, "", { path: "/", maxAge: 0 });
+  res.cookies.set(OAUTH_PLATFORM_COOKIE, "", { path: "/", maxAge: 0 });
+  return res;
+}
 
 type TokenResponse = {
   access_token?: string;
@@ -57,19 +81,19 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ platform: s
     const redirect = new URL("/settings/integrations", req.nextUrl.origin);
     redirect.searchParams.set("error", "unsupported_platform");
     redirect.searchParams.set("platform", platform);
-    return NextResponse.redirect(redirect);
+    return withClearedOAuthCookies(NextResponse.redirect(redirect));
   }
 
   const url = new URL(req.url);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
-  const next = url.searchParams.get("next") || "/settings/integrations";
+  const next = sanitizeNextPath(url.searchParams.get("next"));
 
   if (!code || !state) {
     const redirect = new URL(next, req.nextUrl.origin);
     redirect.searchParams.set("error", "missing_code");
     redirect.searchParams.set("platform", cfg.platform);
-    return NextResponse.redirect(redirect);
+    return withClearedOAuthCookies(NextResponse.redirect(redirect));
   }
 
   const cookieState = req.cookies.get(OAUTH_STATE_COOKIE)?.value || "";
@@ -80,7 +104,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ platform: s
     const redirect = new URL(next, req.nextUrl.origin);
     redirect.searchParams.set("error", "invalid_state");
     redirect.searchParams.set("platform", cfg.platform);
-    return NextResponse.redirect(redirect);
+    return withClearedOAuthCookies(NextResponse.redirect(redirect));
   }
 
   const { clientId, clientSecret } = getOAuthClientCreds(cfg);
@@ -88,7 +112,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ platform: s
     const redirect = new URL(next, req.nextUrl.origin);
     redirect.searchParams.set("error", "missing_config");
     redirect.searchParams.set("platform", cfg.platform);
-    return NextResponse.redirect(redirect);
+    return withClearedOAuthCookies(NextResponse.redirect(redirect));
   }
 
   const callbackUrl = new URL(`/api/oauth/${cfg.platform}/callback`, req.nextUrl.origin);
@@ -191,14 +215,41 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ platform: s
       const redirect = new URL(next, req.nextUrl.origin);
       redirect.searchParams.set("error", "unauthorized");
       redirect.searchParams.set("platform", cfg.platform);
-      return NextResponse.redirect(redirect);
+      return withClearedOAuthCookies(NextResponse.redirect(redirect));
     }
 
-    const { error } = await supabase.from("platform_connections").upsert(
-      {
-        user_id: userData.user.id,
-        platform: cfg.platform,
-        account_id: accountId,
+    const workspaceId = await getOrCreateDefaultWorkspaceId({ supabase, userId: userData.user.id });
+
+    const insertRow = {
+      user_id: userData.user.id,
+      workspace_id: workspaceId,
+      platform: cfg.platform,
+      account_id: accountId,
+      account_name: accountName,
+      scopes,
+      access_token_ciphertext: accessEnc.ciphertext,
+      access_token_iv: accessEnc.iv,
+      access_token_tag: accessEnc.tag,
+      refresh_token_ciphertext: refreshEnc?.ciphertext ?? null,
+      refresh_token_iv: refreshEnc?.iv ?? null,
+      refresh_token_tag: refreshEnc?.tag ?? null,
+      expires_at: expiresAt,
+      refresh_expires_at: refreshExpiresAt,
+      data: extra,
+    };
+
+    const { error: insertError } = await supabase.from("platform_connections").insert(insertRow);
+    if (insertError) {
+      // Reconnect: row already exists.
+      if (insertError.code !== "23505") {
+        console.error("oauth:connection_insert_failed", cfg.platform, insertError);
+        const redirect = new URL(next, req.nextUrl.origin);
+        redirect.searchParams.set("error", "save_failed");
+        redirect.searchParams.set("platform", cfg.platform);
+        return withClearedOAuthCookies(NextResponse.redirect(redirect));
+      }
+
+      const updateRow = {
         account_name: accountName,
         scopes,
         access_token_ciphertext: accessEnc.ciphertext,
@@ -210,32 +261,33 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ platform: s
         expires_at: expiresAt,
         refresh_expires_at: refreshExpiresAt,
         data: extra,
-      },
-      { onConflict: "user_id,platform,account_id" }
-    );
+      };
 
-    if (error) {
-      console.error("oauth:connection_upsert_failed", cfg.platform, error);
-      const redirect = new URL(next, req.nextUrl.origin);
-      redirect.searchParams.set("error", "save_failed");
-      redirect.searchParams.set("platform", cfg.platform);
-      return NextResponse.redirect(redirect);
+      const { error: updateError } = await supabase
+        .from("platform_connections")
+        .update(updateRow)
+        .eq("workspace_id", workspaceId)
+        .eq("platform", cfg.platform)
+        .eq("account_id", accountId);
+
+      if (updateError) {
+        console.error("oauth:connection_update_failed", cfg.platform, updateError);
+        const redirect = new URL(next, req.nextUrl.origin);
+        redirect.searchParams.set("error", "save_failed");
+        redirect.searchParams.set("platform", cfg.platform);
+        return withClearedOAuthCookies(NextResponse.redirect(redirect));
+      }
     }
 
     const redirect = new URL(next, req.nextUrl.origin);
     redirect.searchParams.set("connected", cfg.platform);
 
-    const res = NextResponse.redirect(redirect);
-    // Clear transient cookies.
-    res.cookies.set(OAUTH_STATE_COOKIE, "", { path: "/", maxAge: 0 });
-    res.cookies.set(OAUTH_VERIFIER_COOKIE, "", { path: "/", maxAge: 0 });
-    res.cookies.set(OAUTH_PLATFORM_COOKIE, "", { path: "/", maxAge: 0 });
-    return res;
+    return withClearedOAuthCookies(NextResponse.redirect(redirect));
   } catch (e) {
     console.error("oauth:callback_failed", cfg.platform, e);
     const redirect = new URL(next, req.nextUrl.origin);
     redirect.searchParams.set("error", "oauth_failed");
     redirect.searchParams.set("platform", cfg.platform);
-    return NextResponse.redirect(redirect);
+    return withClearedOAuthCookies(NextResponse.redirect(redirect));
   }
 }
