@@ -5,11 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { AccountSwitcher } from "@/components/shared/account-switcher";
-import {
-  clearDemoSessionCookie,
-  getDemoSessionClient,
-  getWorkspaceTimezoneClient,
-} from "@/lib/demo-session";
+import { clearDemoSessionCookie, getWorkspaceTimezoneClient } from "@/lib/demo-session";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard,
   BarChart3,
@@ -26,6 +23,7 @@ import {
   Plus,
   Menu,
   LogOut,
+  X,
 } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 
@@ -51,8 +49,9 @@ export default function DashboardLayout({
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [timeZone, setTimeZone] = useState(() => getWorkspaceTimezoneClient());
 
-  const session = getDemoSessionClient();
-  const displayName = session?.fullName || "John Everett";
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  const displayName = userEmail ? titleCase(userEmail.split("@")[0] || "") : "Account";
   const initials = displayName
     .split(" ")
     .filter(Boolean)
@@ -66,7 +65,24 @@ export default function DashboardLayout({
     setTimeZone(getWorkspaceTimezoneClient());
   }, [pathname]);
 
+  useEffect(() => {
+    const supabase = createSupabaseBrowserClient();
+    supabase.auth.getUser().then(({ data }) => {
+      setUserEmail(data.user?.email ?? null);
+    });
+  }, []);
+
+  function titleCase(value: string) {
+    return value
+      .split(/[\s._-]+/)
+      .filter(Boolean)
+      .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+      .join(" ");
+  }
+
   function handleLogout() {
+    const supabase = createSupabaseBrowserClient();
+    void supabase.auth.signOut();
     clearDemoSessionCookie();
     setMobileNavOpen(false);
     router.push("/login");
@@ -154,7 +170,7 @@ export default function DashboardLayout({
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-medium text-ink truncate">{displayName}</p>
-              <p className="text-[11px] text-[#625d58] truncate">{session?.role || "Admin"}</p>
+              <p className="text-[11px] text-[#625d58] truncate">{userEmail || ""}</p>
             </div>
           </div>
 
@@ -181,6 +197,16 @@ export default function DashboardLayout({
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-ink/50 z-50 md:hidden" />
           <Dialog.Content className="fixed inset-y-0 left-0 z-50 md:hidden">
+            <Dialog.Title className="sr-only">Navigation</Dialog.Title>
+            <Dialog.Close asChild>
+              <button
+                type="button"
+                aria-label="Close navigation"
+                className="absolute top-4 right-4 z-10 size-9 inline-flex items-center justify-center rounded-md bg-paper/90 border border-border text-[#625d58] hover:text-ink hover:bg-paper transition-colors"
+              >
+                <X className="size-4" />
+              </button>
+            </Dialog.Close>
             {sidebar}
           </Dialog.Content>
         </Dialog.Portal>
@@ -215,7 +241,11 @@ export default function DashboardLayout({
             >
               {timeZone}
             </Link>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 bg-warm text-paper rounded-md text-xs font-medium hover:bg-warm/90 transition-colors">
+            <button
+              type="button"
+              onClick={() => router.push("/schedule?new=1")}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-warm text-paper rounded-md text-xs font-medium hover:bg-warm/90 transition-colors"
+            >
               <Plus className="size-3" />
               New Post
             </button>

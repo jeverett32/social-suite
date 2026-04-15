@@ -1,9 +1,11 @@
 import { KpiCard } from "@/components/shared/kpi-card";
 import { PageHeader } from "@/components/shared/page-header";
 import { PlatformBadge } from "@/components/shared/platform-badge";
-import { mockKpis, mockScheduledPosts } from "@/lib/mock-data";
+import { mockKpis } from "@/lib/mock-data";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ArrowRight, CheckCircle2, Clock, Zap } from "lucide-react";
 import Link from "next/link";
+import type { Post, PostFormat, PostStatus } from "@/types/post";
 
 const quickActions = [
   { label: "Draft a post", href: "/draft", icon: Zap, color: "text-warm" },
@@ -11,7 +13,69 @@ const quickActions = [
   { label: "Check inbox", href: "/inbox", icon: CheckCircle2, color: "text-[#536443]" },
 ];
 
-export default function OverviewPage() {
+type ScheduledPostRow = {
+  id: string;
+  platform_id: string;
+  content: string;
+  format: string;
+  status: string;
+  scheduled_at: string | null;
+  published_at: string | null;
+  media_url: string | null;
+};
+
+function isPostStatus(value: unknown): value is PostStatus {
+  return value === "draft" || value === "scheduled" || value === "published" || value === "failed";
+}
+
+function isPostFormat(value: unknown): value is PostFormat {
+  return (
+    value === "image" ||
+    value === "video" ||
+    value === "reel" ||
+    value === "carousel" ||
+    value === "text" ||
+    value === "story"
+  );
+}
+
+function rowToPost(row: ScheduledPostRow): Post {
+  return {
+    id: row.id,
+    platformId: row.platform_id as Post["platformId"],
+    content: row.content,
+    format: (isPostFormat(row.format) ? row.format : "text") as PostFormat,
+    status: (isPostStatus(row.status) ? row.status : "draft") as PostStatus,
+    scheduledAt: row.scheduled_at ?? undefined,
+    publishedAt: row.published_at ?? undefined,
+    mediaUrl: row.media_url ?? undefined,
+  };
+}
+
+export default async function OverviewPage() {
+  let upcomingPosts: Post[] = [];
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data: userData } = await supabase.auth.getUser();
+    if (userData.user) {
+      const { data } = await supabase
+        .from("scheduled_posts")
+        .select("id, platform_id, content, format, status, scheduled_at, published_at, media_url")
+        .eq("user_id", userData.user.id)
+        .eq("status", "scheduled")
+        .not("scheduled_at", "is", null)
+        .gte("scheduled_at", new Date().toISOString())
+        .order("scheduled_at", { ascending: true })
+        .limit(4);
+      upcomingPosts = ((data || []) as ScheduledPostRow[]).map(rowToPost);
+    }
+  } catch {
+    // Keep rendering; this page is still useful in demo mode.
+    if (process.env.NODE_ENV === "development") {
+      console.warn("Overview: failed to load scheduled posts");
+    }
+  }
+
   return (
     <div>
       <PageHeader
@@ -54,7 +118,7 @@ export default function OverviewPage() {
             </Link>
           </div>
           <div className="space-y-3">
-            {mockScheduledPosts.slice(0, 4).map((post) => (
+            {(upcomingPosts.length ? upcomingPosts : []).map((post) => (
               <div
                 key={post.id}
                 className="flex items-center gap-3 py-2.5 border-b border-border last:border-0"
@@ -74,6 +138,9 @@ export default function OverviewPage() {
                 </div>
               </div>
             ))}
+            {upcomingPosts.length === 0 && (
+              <p className="text-xs text-[#625d58]">No upcoming posts yet. Create one in Schedule.</p>
+            )}
           </div>
         </div>
       </div>
