@@ -1,5 +1,7 @@
 import { DEMO_SESSION_COOKIE, DEMO_TIMEZONE_COOKIE } from "@/lib/demo-constants";
 
+export const WORKSPACE_TIMEZONE_CHANGED_EVENT = "krowdr:timezone-changed";
+
 export type DemoSession = {
   firstName: string;
   fullName: string;
@@ -67,6 +69,15 @@ export function getDemoSessionClient(): DemoSession | null {
 
 export function setWorkspaceTimezoneClient(tz: string) {
   setCookie(DEMO_TIMEZONE_COOKIE, encodeURIComponent(tz), 60 * 60 * 24 * 365);
+
+  // Let client layouts/widgets react without requiring a full reload.
+  if (typeof window !== "undefined") {
+    try {
+      window.dispatchEvent(new CustomEvent(WORKSPACE_TIMEZONE_CHANGED_EVENT, { detail: tz }));
+    } catch {
+      window.dispatchEvent(new Event(WORKSPACE_TIMEZONE_CHANGED_EVENT));
+    }
+  }
 }
 
 export function getWorkspaceTimezoneClient(): string {
