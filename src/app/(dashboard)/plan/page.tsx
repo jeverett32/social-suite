@@ -181,12 +181,16 @@ export default function PlanPage() {
           </h2>
           <div className="flex gap-1">
             <button
+              type="button"
+              aria-label="Previous week"
               onClick={() => handleNavigate(-1)}
               className="px-2.5 py-1 text-xs border border-border rounded hover:bg-shell transition-colors"
             >
               <ChevronLeft className="size-3.5 text-[#625d58]" />
             </button>
             <button
+              type="button"
+              aria-label="Next week"
               onClick={() => handleNavigate(1)}
               className="px-2.5 py-1 text-xs border border-border rounded hover:bg-shell transition-colors"
             >

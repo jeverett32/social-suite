@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { AccountSwitcher } from "@/components/shared/account-switcher";
 import {
-  clearDemoSessionCookie,
+  clearDemoWorkspaceClient,
   getDemoSessionClient,
   getWorkspaceTimezoneClient,
   WORKSPACE_TIMEZONE_CHANGED_EVENT,
@@ -230,7 +230,7 @@ export default function DashboardLayout({
               </button>
               <button
                 onClick={() => {
-                  clearDemoSessionCookie();
+                  clearDemoWorkspaceClient();
                   router.replace("/login");
                 }}
                 className="px-3 py-1.5 rounded-md text-xs font-medium border border-border bg-panel text-[#625d58] hover:bg-paper hover:text-ink transition-colors"

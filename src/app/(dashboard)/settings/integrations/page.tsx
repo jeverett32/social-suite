@@ -69,7 +69,7 @@ function ConnectedAccountsList({ accounts }: { accounts: ConnectedAccount[] }) {
                   <div>
                     <p className="text-sm font-medium text-ink">{account.username}</p>
                     <p className="text-[10px] text-[#625d58]">
-                      Connected {new Date(account.connectedAt).toLocaleDateString()}
+                      Connected {new Date(account.connectedAt + "T12:00:00Z").toLocaleDateString()}
                       {account.lastSync && ` · Last sync ${account.lastSync}`}
                     </p>
                   </div>
@@ -80,11 +80,19 @@ function ConnectedAccountsList({ accounts }: { accounts: ConnectedAccount[] }) {
                     {status.label}
                   </span>
                   {account.status === "connected" && (
-                    <button className="p-2 hover:bg-panel rounded transition-colors text-[#625d58]">
+                    <button
+                      type="button"
+                      aria-label={`Sync ${account.username}`}
+                      className="p-2 hover:bg-panel rounded transition-colors text-[#625d58]"
+                    >
                       <RefreshCw className="size-4" />
                     </button>
                   )}
-                  <button className="p-2 hover:bg-panel rounded transition-colors text-[#625d58] hover:text-[#9e4d3b]">
+                  <button
+                    type="button"
+                    aria-label={`Disconnect ${account.username}`}
+                    className="p-2 hover:bg-panel rounded transition-colors text-[#625d58] hover:text-[#9e4d3b]"
+                  >
                     <Unlink className="size-4" />
                   </button>
                 </div>
@@ -161,7 +169,9 @@ function ApiKeysSection() {
           </div>
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={() => setShowKey(!showKey)}
+              aria-label={showKey ? "Hide API key" : "Show API key"}
               className="p-2 hover:bg-panel rounded transition-colors text-[#625d58]"
             >
               {showKey ? <Key className="size-4" /> : <ExternalLink className="size-4" />}

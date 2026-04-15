@@ -57,6 +57,25 @@ export function clearDemoSessionCookie() {
   document.cookie = `${DEMO_SESSION_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`;
 }
 
+export function clearWorkspaceTimezoneClient() {
+  if (typeof document === "undefined") return;
+  document.cookie = `${DEMO_TIMEZONE_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`;
+
+  // Let client layouts/widgets react without requiring a full reload.
+  if (typeof window !== "undefined") {
+    try {
+      window.dispatchEvent(new CustomEvent(WORKSPACE_TIMEZONE_CHANGED_EVENT));
+    } catch {
+      window.dispatchEvent(new Event(WORKSPACE_TIMEZONE_CHANGED_EVENT));
+    }
+  }
+}
+
+export function clearDemoWorkspaceClient() {
+  clearDemoSessionCookie();
+  clearWorkspaceTimezoneClient();
+}
+
 export function getDemoSessionClient(): DemoSession | null {
   const raw = getCookie(DEMO_SESSION_COOKIE);
   if (!raw) return null;

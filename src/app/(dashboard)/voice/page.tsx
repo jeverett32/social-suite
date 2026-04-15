@@ -6,19 +6,12 @@ import { PlatformBadge } from "@/components/shared/platform-badge";
 import type { PlatformId } from "@/types/platform";
 import { cn } from "@/lib/utils";
 import {
-  Mic,
-  Volume2,
-  VolumeX,
   Sparkles,
   RefreshCw,
   Plus,
   Trash2,
   Edit,
-  ChevronRight,
   AlertCircle,
-  CheckCircle,
-  Copy,
-  Eye,
 } from "lucide-react";
 
 type Tone = "professional" | "conversational" | "authoritative" | "playful" | "inspirational" | "educational";
@@ -144,6 +137,8 @@ function VocabularyManager({
           className="flex-1 border border-border rounded-md px-3 py-2 text-sm bg-paper text-ink placeholder:text-[#625d58] focus:outline-none focus:ring-1 focus:ring-warm"
         />
         <button
+          type="button"
+          aria-label="Add word"
           onClick={addWord}
           className="px-3 py-2 bg-warm text-paper rounded-md text-sm font-medium hover:bg-warm/90 transition-colors"
         >
@@ -157,7 +152,12 @@ function VocabularyManager({
             className="inline-flex items-center gap-1 px-2.5 py-1 bg-shell border border-border rounded-full text-xs text-ink"
           >
             {word}
-            <button onClick={() => removeWord(word)} className="text-[#625d58] hover:text-[#9e4d3b]">
+            <button
+              type="button"
+              aria-label={`Remove ${word}`}
+              onClick={() => removeWord(word)}
+              className="text-[#625d58] hover:text-[#9e4d3b]"
+            >
               <Trash2 className="size-3" />
             </button>
           </span>
@@ -200,6 +200,8 @@ function BannedPhrasesManager({
           className="flex-1 border border-border rounded-md px-3 py-2 text-sm bg-paper text-ink placeholder:text-[#625d58] focus:outline-none focus:ring-1 focus:ring-warm"
         />
         <button
+          type="button"
+          aria-label="Add banned phrase"
           onClick={addPhrase}
           className="px-3 py-2 bg-warm text-paper rounded-md text-sm font-medium hover:bg-warm/90 transition-colors"
         >
@@ -213,7 +215,12 @@ function BannedPhrasesManager({
             className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#9e4d3b]/10 border border-[#9e4d3b]/30 rounded-full text-xs text-[#9e4d3b]"
           >
             {phrase}
-            <button onClick={() => removePhrase(phrase)} className="hover:text-ink">
+            <button
+              type="button"
+              aria-label={`Remove ${phrase}`}
+              onClick={() => removePhrase(phrase)}
+              className="hover:text-ink"
+            >
               <Trash2 className="size-3" />
             </button>
           </span>
@@ -258,7 +265,12 @@ function ExamplePostsSection({
                 >
                   {post.rating}% match
                 </span>
-                <button onClick={() => onRemove(post.id)} className="text-[#625d58] hover:text-[#9e4d3b]">
+                <button
+                  type="button"
+                  aria-label="Remove example post"
+                  onClick={() => onRemove(post.id)}
+                  className="text-[#625d58] hover:text-[#9e4d3b]"
+                >
                   <Trash2 className="size-3.5" />
                 </button>
               </div>
@@ -382,7 +394,11 @@ export default function VoicePage() {
                 <p className="text-xs text-[#625d58] mt-1">{profile.description}</p>
               </div>
               <div className="flex items-center gap-2">
-                <button className="p-2 hover:bg-shell rounded transition-colors text-[#625d58]">
+                <button
+                  type="button"
+                  aria-label="Edit voice profile"
+                  className="p-2 hover:bg-shell rounded transition-colors text-[#625d58]"
+                >
                   <Edit className="size-4" />
                 </button>
               </div>
